@@ -71,13 +71,7 @@ public class RecordsChallenge {
      * </pre>
      */
     public List<StudentSummary> getStudentSummaries() {
-        return students.stream()
-                .map(s -> new StudentSummary(
-                    s.getId(),
-                    s.getFullName(),
-                    s.getAverageScore() != null ? s.getAverageScore() : 0.0
-                ))
-                .collect(Collectors.toList());
+        return null;
     }
 
     /**
@@ -189,18 +183,7 @@ public class RecordsChallenge {
      * </pre>
      */
     public List<CourseSummary> getCourseSummaries() {
-        return courses.stream()
-                .map(c -> new CourseSummary(
-                    c.getId(),
-                    c.getTitle(),
-                    c.getPrice(),
-                    new InstructorInfo(
-                        c.getInstructor().getId(),
-                        c.getInstructor().getFullName(),
-                        c.getInstructor().getSpecialization()
-                    )
-                ))
-                .collect(Collectors.toList());
+        return null;
     }
 
     /**
@@ -279,11 +262,7 @@ public class RecordsChallenge {
      * </pre>
      */
     public Map<CategoryDifficulty, Long> groupCoursesByTypeAndLevel() {
-        return courses.stream()
-                .collect(Collectors.groupingBy(
-                    c -> new CategoryDifficulty(c.getCategory(), c.getDifficulty()),
-                    Collectors.counting()
-                ));
+        return null;
     }
 
     /**

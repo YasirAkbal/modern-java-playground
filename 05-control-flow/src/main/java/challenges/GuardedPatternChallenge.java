@@ -149,11 +149,7 @@ public class GuardedPatternChallenge {
      * @return Processed value
      */
     public int processInteger(Integer input) {
-        return switch (input) {
-            case null -> -1;
-            case Integer i when i % 2 == 0 -> i * 2;
-            case Integer i -> i * 3;
-        };
+        return 0;
     }
 
     /**
@@ -253,15 +249,7 @@ public class GuardedPatternChallenge {
      * @return Instructor classification
      */
     public String classifyInstructor(Object obj) {
-        return switch (obj) {
-            case Instructor i when i.isVerified() && i.getRating() > 4.5 && i.getTotalStudents() > 1000 -> "ELITE";
-            case Instructor i when i.isVerified() && i.getRating() > 4.0 && i.getTotalStudents() > 500 -> "EXPERT";
-            case Instructor i when i.isVerified() && i.getRating() > 3.5 -> "PROFESSIONAL";
-            case Instructor i when i.isVerified() -> "CERTIFIED";
-            case Instructor i when !i.isVerified() && i.getRating() > 4.0 -> "PROMISING";
-            case Instructor i -> "BEGINNER";
-            default -> "INVALID";
-        };
+        return null;
     }
 
     /**
@@ -314,15 +302,7 @@ public class GuardedPatternChallenge {
      * @return Price category
      */
     public String categorizePrice(Object obj) {
-        return switch (obj) {
-            case Course c when c.isFree() -> "FREE";
-            case Course c when c.getPrice().compareTo(BigDecimal.valueOf(20)) < 0 -> "BUDGET";
-            case Course c when c.getPrice().compareTo(BigDecimal.valueOf(50)) < 0 -> "ECONOMY";
-            case Course c when c.getPrice().compareTo(BigDecimal.valueOf(100)) < 0 -> "STANDARD";
-            case Course c when c.getPrice().compareTo(BigDecimal.valueOf(200)) < 0 -> "PREMIUM";
-            case Course c -> "LUXURY";
-            default -> "INVALID";
-        };
+        return null;
     }
 
     /**

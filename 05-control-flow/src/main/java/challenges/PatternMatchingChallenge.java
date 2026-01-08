@@ -64,12 +64,6 @@ public class PatternMatchingChallenge {
      * @return Length of string or enrollment count of course
      */
     public int getLengthOrCount(Object obj) {
-        if (obj instanceof String s) {
-            return s.length();
-        }
-        if (obj instanceof Course c) {
-            return c.getEnrollmentCount();
-        }
         return 0;
     }
 
@@ -110,15 +104,6 @@ public class PatternMatchingChallenge {
      * @return Enrollment count
      */
     public int countEnrollments(Object obj) {
-        if (obj instanceof Student s) {
-            return s.getEnrollments().size();
-        }
-        if (obj instanceof Course c) {
-            return c.getEnrollmentCount();
-        }
-        if (obj instanceof Enrollment e) {
-            return 1;
-        }
         return 0;
     }
 
@@ -147,14 +132,7 @@ public class PatternMatchingChallenge {
      * @return Description string
      */
     public String describeObject(Object obj) {
-        return switch (obj) {
-            case String s -> "Text: " + s;
-            case Integer i -> "Number: " + i;
-            case Student st -> "Student: " + st.getFullName();
-            case Course c -> "Course: " + c.getTitle();
-            case null -> "Null Object";
-            default -> "Unknown Type";
-        };
+        return null;
     }
 
     /**
@@ -235,14 +213,7 @@ public class PatternMatchingChallenge {
      * @return Classification string
      */
     public String classifyNumber(Object obj) {
-        return switch (obj) {
-            case Integer i when i > 100 -> "Large Number";
-            case Integer i when i > 50 -> "Medium Number";
-            case Integer i when i > 0 -> "Small Number";
-            case Integer i when i == 0 -> "Zero";
-            case Integer i when i < 0 -> "Negative Number";
-            default -> "Not a Number";
-        };
+        return null;
     }
 
     /**
@@ -317,13 +288,7 @@ public class PatternMatchingChallenge {
      * @return Classification
      */
     public String safeStringClassifier(Object obj) {
-        return switch (obj) {
-            case null -> "NULL";
-            case String s when s.isEmpty() -> "EMPTY";
-            case String s when s.length() > 10 -> "LONG";
-            case String s -> "SHORT";
-            default -> "NOT_STRING";
-        };
+        return null;
     }
 
     /**

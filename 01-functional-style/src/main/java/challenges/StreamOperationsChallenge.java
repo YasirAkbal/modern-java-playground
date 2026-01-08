@@ -4,6 +4,7 @@ import data.SampleDataGenerator;
 import model.*;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.*;
 
@@ -44,8 +45,12 @@ public class StreamOperationsChallenge {
      * Use: filter -> map -> sorted -> toList
      */
     public List<String> getPublishedCourseTitles() {
-        // TODO: Implement pipeline
-        return null;
+        List<String> filteredCourses = courses.stream()
+                                            .filter(c -> c.isPublished())
+                                            .map(Course::getTitle)
+                                            .sorted()
+                                            .toList();
+        return filteredCourses;
     }
     
     /**
@@ -54,8 +59,13 @@ public class StreamOperationsChallenge {
      * Apply 20% discount to courses costing > 100, return sorted prices.
      */
     public List<BigDecimal> getDiscountedPrices() {
-        // TODO: filter > 100 -> map (price * 0.8) -> sorted
-        return null;
+        BigDecimal oneHundred = BigDecimal.valueOf(100);
+        BigDecimal priceMultiplier = BigDecimal.valueOf(0.8);
+        var newPriceList = courses.stream()
+                                .filter(c -> c.getPrice().compareTo(oneHundred) > 0)
+                                .map(c -> c.getPrice().multiply(priceMultiplier))
+                                .toList();
+        return newPriceList;
     }
 
     /**
@@ -65,8 +75,12 @@ public class StreamOperationsChallenge {
      * Skip the first (page-1) * pageSize elements, then take pageSize elements.
      */
     public List<Student> getStudentPage(int page, int pageSize) {
-        // TODO: skip ... limit ...
-        return null;
+        var studentPage = students.stream()
+                            .skip((page - 1) * pageSize)
+                            .limit(pageSize)
+                            .toList();
+
+        return studentPage;
     }
     
     // 
@@ -81,8 +95,11 @@ public class StreamOperationsChallenge {
      * Use flatMap.
      */
     public List<Lesson> getAllLessons() {
-        // TODO: courses.stream().flatMap(...)
-        return null;
+        var lessons = courses.stream()
+                        .flatMap(c -> c.getLessons().stream())
+                        .distinct() //since object equals isn't overridden in course class this has no effect
+                        .toList();
+        return lessons;
     }
     
     /**
@@ -91,8 +108,11 @@ public class StreamOperationsChallenge {
      * Collect all unique tags from all courses.
      */
     public List<String> getAllUniqueTags() {
-        // TODO: flatMap tags -> distinct
-        return null;
+        var uniqueTags = courses.stream()
+                            .flatMap(c -> c.getTags().stream())
+                            .distinct()
+                            .toList();
+        return uniqueTags;
     }
 
     /**
@@ -103,8 +123,14 @@ public class StreamOperationsChallenge {
      * Use flatMap to iterate courses inside student stream.
      */
     public List<String> getCartesianProduct() {
-        // TODO: students.stream().flatMap(s -> courses.stream().map(c -> ...))
-        return null;
+        var cartesianProduct = students.stream()
+                                .flatMap(
+                                    s -> courses.stream()
+                                        .map(c -> MessageFormat.format("Student: {0} - Course: {1}", 
+                                            s.getFullName(), c.getTitle()))
+                                )
+                                .toList();
+        return cartesianProduct;
     }
     
     // 
@@ -112,12 +138,12 @@ public class StreamOperationsChallenge {
     // 
     
     /**
-     * TASK 3.1: Hard Course Check
-     * Is there ANY course with difficulty == HARD?
+     * TASK 3.1: Advanced Course Check
+     * Is there ANY course with difficulty == ADVANCED?
      */
-    public boolean hasHardCourses() {
-        // TODO: anyMatch
-        return false;
+    public boolean hasAdvancedCourses() {
+        return courses.stream()
+                    .anyMatch(c -> c.getDifficulty().equals(DifficultyLevel.ADVANCED));
     }
     
     /**
@@ -125,8 +151,9 @@ public class StreamOperationsChallenge {
      * Find the first course that is free (price == 0 or null).
      */
     public Optional<Course> findFirstFreeCourse() {
-        // TODO: findFirst
-        return Optional.empty();
+        return courses.stream()
+                .filter(c -> c.getPrice() == null || c.getPrice().equals(BigDecimal.ZERO))
+                .findFirst();
     }
     
     // 
@@ -139,8 +166,9 @@ public class StreamOperationsChallenge {
      * Use mapToInt and sum.
      */
     public int getTotalCourseDuration() {
-        // TODO: mapToInt -> sum
-        return 0;
+        return courses.stream()
+                .mapToInt(Course::getDurationInHours)
+                .sum();
     }
     
     /**
@@ -148,8 +176,9 @@ public class StreamOperationsChallenge {
      * Find the highest rating among all courses.
      */
     public OptionalDouble getMaxRating() {
-        // TODO: mapToDouble -> max
-        return OptionalDouble.empty();
+        return courses.stream()
+                .mapToDouble(Course::getRating)
+                .max();
     }
     
     /**
@@ -158,7 +187,7 @@ public class StreamOperationsChallenge {
      * Use reduce identity.
      */
     public long getProductOfNumbers(List<Integer> numbers) {
-        // TODO: reduce((a, b) -> a * b)
-        return 0;
+        return numbers.stream()
+                .reduce(1, (acc, num) -> acc * num);
     }
 }

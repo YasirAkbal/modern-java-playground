@@ -3,6 +3,7 @@ package challenges;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -26,8 +27,7 @@ public class PrimitiveStreamChallenge {
      * Use IntStream.range()
      */
     public int[] generateRange(int start, int end) {
-        // TODO: IntStream.range(...).toArray();
-        return null;
+        return IntStream.range(start, end).toArray();
     }
 
     /**
@@ -36,8 +36,7 @@ public class PrimitiveStreamChallenge {
      * Use summaryStatistics()
      */
     public IntSummaryStatistics getScoreStats(int[] scores) {
-        // TODO: IntStream.of(scores).summaryStatistics();
-        return null;
+        return IntStream.of(scores).summaryStatistics();
     }
 
     /**
@@ -46,8 +45,9 @@ public class PrimitiveStreamChallenge {
      * Use mapToObj()
      */
     public List<String> generateIds(int count) {
-        // TODO: IntStream.range(0, count).mapToObj(...)
-        return null;
+        return IntStream.range(0, count)
+                    .mapToObj(i -> "ID-" + i)
+                    .toList();
     }
 
     /**
@@ -57,6 +57,6 @@ public class PrimitiveStreamChallenge {
      */
     public double[] generateRandomPrices() {
         // TODO: new Random().doubles(...).limit(5).toArray()
-        return null;
+        return DoubleStream.generate(() -> Math.random()).limit(5).toArray();
     }
 }

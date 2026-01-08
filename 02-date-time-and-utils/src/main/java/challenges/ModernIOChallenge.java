@@ -167,9 +167,7 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public List<String> findLinesByPattern(Path path, String pattern) throws IOException {
-        try (Stream<String> lines = Files.lines(path)) {
-            return lines.filter(line -> line.contains(pattern)).toList();
-        }
+        return null;
     }
 
     /**
