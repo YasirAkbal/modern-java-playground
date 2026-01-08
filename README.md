@@ -1,48 +1,32 @@
-# Modern Java Playground
+# Modern Java Features Practice
 
-Welcome to the **Modern Java Playground**! 
+A hands-on learning repository to master Java 8-21 features through practical challenges.
 
-This repository is designed to help you master the evolution of Java from version 8 up to 21.
-It uses a realistic **Education Management System (EduMaster)** scenario to provide context for every feature.
+## 🎯 Purpose
 
-##  Project Structure
+- Learn modern Java features (Java 8 through 21)
+- Build muscle memory through practice
+- Prepare for Spring Boot development with solid Java foundations
 
-This is a Maven Multi-Module project.
+## 📦 Repository Structure
 
-| Module | Java Version | Key Topics |
-|--------|--------------|------------|
-| `edu-master` | Core | Domain Model, Data Generator (The Backbone) |
-| `functional-style` | Java 8 | Lambda, Stream API, Optional, Functional Interfaces |
-| `date-time-and-utils` | Java 8-11 | Date/time API, Collection Factories, File I/O |
-| `language-enhancements` | Java 10-14 | `var`, Switch Expressions, Text Blocks |
-| `control-flow` | Java 16-21 | Pattern Matching (instanceof, switch) |
-| `data-modeling` | Java 14-17 | Records, Sealed Classes |
-| `concurrency-and-performance` | Java 8-21 | CompletableFuture, Virtual Threads |
-| `api-modernization` | Java 11+ | HTTP Client, String API |
+- **`edu-master/`** - Domain model (education platform) - AI generated
+- **Challenge modules** - Practice exercises - AI generated structure
+- **Solutions** - All implementations are written by me
 
-##  How to Use
+## 🔧 How It Works
 
-1. **Explore the Domain**: Check `edu-master` to understand `Student`, `Course`, `Instructor` classes.
-2. **Pick a Module**: Start with `functional-style` if you are new to Java 8.
-3. **Solve Challenges**:
-   - Open the `src/main/java/challenges` folder in any module.
-   - Look for files ending with `Challenge.java`.
-   - Read the **SCENARIO** and **TASK** comments.
-   - Implement the solution where you see `// TODO`.
-4. **Verify**: Write a `main` method or use a test class to run your code.
+The challenge structure and `edu-master` domain were AI-generated to save time on boilerplate. All challenge solutions are my own implementations, allowing me to focus on learning and practicing modern Java features.
 
-##  Prerequisites
+## ✅ Covered Topics
 
-- JDK 21
-- Maven
-- IDE (IntelliJ IDEA, Eclipse, or VS Code) with Java 21 support enabled.
+- Functional Programming (Lambdas, Streams, Optional)
+- Date/Time API
+- Records & Sealed Classes
+- Pattern Matching
+- Switch Expressions & Text Blocks
+- Modern language enhancements
 
-##  Key Features to Master
+## 🚀 Usage
 
-- **Functional**: Stream pipelines, defensive coding with Optional.
-- **Conciseness**: Records, `var`, Switch Expressions.
-- **Performance**: Parallel Streams, Virtual Threads.
-- **Safety**: Sealed Classes, Immutable Collections.
-
-Happy Coding!
-
+Feel free to fork this repository and implement your own solutions. 
