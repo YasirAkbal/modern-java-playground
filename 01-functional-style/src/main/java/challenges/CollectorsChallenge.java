@@ -101,4 +101,93 @@ public class CollectorsChallenge {
         // TODO: map(name) -> collect(joining(", "))
         return null;
     }
+
+    //
+    // PART 4: Advanced Grouping (Cascaded)
+    //
+
+    /**
+     * TASK 4.1: Courses by Category and Difficulty
+     * Create a nested map: Category -> DifficultyLevel -> List<Course>
+     * Use cascaded groupingBy.
+     * Hint: groupingBy(Category, groupingBy(DifficultyLevel))
+     */
+    public Map<Category, Map<DifficultyLevel, List<Course>>> getCoursesByCategoryAndDifficulty() {
+        // TODO: Cascaded groupingBy
+        return null;
+    }
+
+    /**
+     * TASK 4.2: Average Price by Category and Difficulty
+     * Create a nested map: Category -> DifficultyLevel -> Average Price
+     * Use cascaded groupingBy with averagingDouble downstream.
+     * Hint: groupingBy(Category, groupingBy(DifficultyLevel, averagingDouble(price)))
+     */
+    public Map<Category, Map<DifficultyLevel, Double>> getAveragePriceByCategoryAndDifficulty() {
+        // TODO: Cascaded groupingBy with averagingDouble
+        return null;
+    }
+
+    /**
+     * TASK 4.3: Course Titles by Instructor and Category
+     * Group by Instructor, then by Category, then collect only titles as Set.
+     * Result: Map<Instructor, Map<Category, Set<String>>>
+     * Hint: groupingBy(Instructor, groupingBy(Category, mapping(getTitle, toSet())))
+     */
+    public Map<Instructor, Map<Category, Set<String>>> getTitlesByInstructorAndCategory() {
+        // TODO: Triple-level grouping with mapping to Set
+        return null;
+    }
+
+    //
+    // PART 5: Partitioning with Downstream Collectors
+    //
+
+    /**
+     * TASK 5.1: Count Free vs Paid Courses
+     * Partition courses by isFree, but count them instead of listing.
+     * Result: Map<Boolean, Long> where true=free count, false=paid count
+     * Hint: partitioningBy(isFree, counting())
+     */
+    public Map<Boolean, Long> countFreeAndPaidCourses() {
+        // TODO: partitioningBy with counting()
+        return null;
+    }
+
+    /**
+     * TASK 5.2: Top-Rated Course in Free vs Paid
+     * Partition by isFree, then find the course with max rating in each partition.
+     * Result: Map<Boolean, Optional<Course>>
+     * Hint: partitioningBy(isFree, maxBy(comparingDouble(getRating)))
+     */
+    public Map<Boolean, Optional<Course>> getTopRatedFreeAndPaid() {
+        // TODO: partitioningBy with maxBy
+        return null;
+    }
+
+    //
+    // PART 6: CollectingAndThen
+    //
+
+    /**
+     * TASK 6.1: Most Expensive Course
+     * Find the most expensive course and return it wrapped in Optional.
+     * But transform to get only its title (String).
+     * Use: collectingAndThen(maxBy(...), optional -> optional.map(Course::getTitle))
+     * Result type: Optional<String>
+     */
+    public Optional<String> getMostExpensiveCourseTitle() {
+        // TODO: collectingAndThen with maxBy and mapping
+        return null;
+    }
+
+    /**
+     * TASK 6.2: Course Titles as Unmodifiable List
+     * Collect all course titles into a list, then make it unmodifiable.
+     * Hint: collectingAndThen(toList(), Collections::unmodifiableList)
+     */
+    public List<String> getAllCourseTitlesUnmodifiable() {
+        // TODO: collectingAndThen with unmodifiableList
+        return null;
+    }
 }
