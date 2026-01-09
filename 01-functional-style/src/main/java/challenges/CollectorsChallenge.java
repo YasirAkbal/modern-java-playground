@@ -4,6 +4,7 @@ import data.SampleDataGenerator;
 import model.*;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +44,9 @@ public class CollectorsChallenge {
      * Group courses by their Category.
      */
     public Map<Category, List<Course>> getCoursesByCategory() {
-        // TODO: groupingBy(Category)
-        return null;
+        var coursesByCategory = courses.stream()
+                                    .collect(Collectors.groupingBy(Course::getCategory));
+        return coursesByCategory;
     }
     
     /**
@@ -53,8 +55,9 @@ public class CollectorsChallenge {
      * Use downstream collector: counting()
      */
     public Map<Category, Long> getCourseCountByCategory() {
-        // TODO: groupingBy(Category, counting())
-        return null;
+        var courseCountByCategory = courses.stream()
+                                    .collect(Collectors.groupingBy(Course::getCategory, Collectors.counting()));
+        return courseCountByCategory;
     }
     
     /**
@@ -63,8 +66,9 @@ public class CollectorsChallenge {
      * Use: groupingBy(Instructor, mapping(Course::getTitle, toList()))
      */
     public Map<Instructor, List<String>> getCourseTitlesByInstructor() {
-        // TODO: Implement
-        return null;
+        return courses.stream()
+                .collect(Collectors.groupingBy(Course::getInstructor, 
+                    Collectors.mapping(Course::getTitle, Collectors.toList())));
     }
     
     // 
@@ -76,8 +80,8 @@ public class CollectorsChallenge {
      * Partition courses into two lists: Free (true) and Paid (false).
      */
     public Map<Boolean, List<Course>> partitionFreeAndPaid() {
-        // TODO: partitioningBy(isFree)
-        return null;
+        return courses.stream()
+                .collect(Collectors.partitioningBy(c -> c.isFree()));
     }
     
     // 
@@ -89,8 +93,8 @@ public class CollectorsChallenge {
      * Get count, sum, min, average, max of course prices.
      */
     public DoubleSummaryStatistics getPriceStatistics() {
-        // TODO: summarizingDouble
-        return null;
+        return courses.stream()
+                .collect(Collectors.summarizingDouble(c -> c.getPrice().doubleValue()));
     }
     
     /**
@@ -98,8 +102,9 @@ public class CollectorsChallenge {
      * Return all instructor names joined by comma.
      */
     public String getInstructorNamesCSV(List<Instructor> instructors) {
-        // TODO: map(name) -> collect(joining(", "))
-        return null;
+        return instructors.stream()
+                    .map(Instructor::getFullName)
+                    .collect(Collectors.joining(","));
     }
 
     //
@@ -113,8 +118,9 @@ public class CollectorsChallenge {
      * Hint: groupingBy(Category, groupingBy(DifficultyLevel))
      */
     public Map<Category, Map<DifficultyLevel, List<Course>>> getCoursesByCategoryAndDifficulty() {
-        // TODO: Cascaded groupingBy
-        return null;
+        return courses.stream()
+            .collect(Collectors.groupingBy(Course::getCategory, 
+                Collectors.groupingBy(Course::getDifficulty)));
     }
 
     /**
@@ -124,8 +130,11 @@ public class CollectorsChallenge {
      * Hint: groupingBy(Category, groupingBy(DifficultyLevel, averagingDouble(price)))
      */
     public Map<Category, Map<DifficultyLevel, Double>> getAveragePriceByCategoryAndDifficulty() {
-        // TODO: Cascaded groupingBy with averagingDouble
-        return null;
+        return courses.stream()
+                .collect(Collectors.groupingBy(Course::getCategory,
+                    Collectors.groupingBy(Course::getDifficulty, 
+                        Collectors.averagingDouble(c -> c.getPrice().doubleValue()))
+                ));
     }
 
     /**
@@ -135,8 +144,11 @@ public class CollectorsChallenge {
      * Hint: groupingBy(Instructor, groupingBy(Category, mapping(getTitle, toSet())))
      */
     public Map<Instructor, Map<Category, Set<String>>> getTitlesByInstructorAndCategory() {
-        // TODO: Triple-level grouping with mapping to Set
-        return null;
+        return courses.stream()
+                .collect(Collectors.groupingBy(Course::getInstructor, 
+                    Collectors.groupingBy(Course::getCategory, 
+                        Collectors.mapping(Course::getTitle, Collectors.toSet()))
+                ));
     }
 
     //
@@ -150,8 +162,9 @@ public class CollectorsChallenge {
      * Hint: partitioningBy(isFree, counting())
      */
     public Map<Boolean, Long> countFreeAndPaidCourses() {
-        // TODO: partitioningBy with counting()
-        return null;
+        return courses.stream()
+                .collect(Collectors.partitioningBy(Course::isFree, 
+                    Collectors.counting()));
     }
 
     /**
@@ -161,8 +174,9 @@ public class CollectorsChallenge {
      * Hint: partitioningBy(isFree, maxBy(comparingDouble(getRating)))
      */
     public Map<Boolean, Optional<Course>> getTopRatedFreeAndPaid() {
-        // TODO: partitioningBy with maxBy
-        return null;
+        return courses.stream()
+                .collect(Collectors.partitioningBy(Course::isFree, 
+                    Collectors.maxBy(Comparator.comparingDouble(Course::getRating))));
     }
 
     //
@@ -177,8 +191,10 @@ public class CollectorsChallenge {
      * Result type: Optional<String>
      */
     public Optional<String> getMostExpensiveCourseTitle() {
-        // TODO: collectingAndThen with maxBy and mapping
-        return null;
+        return courses.stream()
+                .collect(Collectors.collectingAndThen(Collectors.maxBy(
+                    Comparator.comparingDouble(c -> c.getPrice().doubleValue())
+                ), optional -> optional.map(Course::getTitle)));
     }
 
     /**
@@ -187,7 +203,9 @@ public class CollectorsChallenge {
      * Hint: collectingAndThen(toList(), Collections::unmodifiableList)
      */
     public List<String> getAllCourseTitlesUnmodifiable() {
-        // TODO: collectingAndThen with unmodifiableList
-        return null;
+        return courses.stream()
+                .map(Course::getTitle)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), 
+                Collections::unmodifiableList));
     }
 }

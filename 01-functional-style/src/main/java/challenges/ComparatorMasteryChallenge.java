@@ -35,7 +35,11 @@ public class ComparatorMasteryChallenge {
      * Use Comparator.comparing().thenComparing().reversed()
      */
     public void multiLevelSort() {
-        // TODO: students.sort(...)
+        Comparator<Student> studentComparator = Comparator.comparing(Student::getLevel)
+            .thenComparing(Student::getLastName)
+            .thenComparing(Student::getId, Comparator.reverseOrder());
+
+        students.sort(studentComparator);
     }
 
     /**
@@ -47,8 +51,12 @@ public class ComparatorMasteryChallenge {
      * Use Comparator.nullsLast() and comparing()
      */
     public void sortWithNullsLast() {
-        // TODO: students.sort(Comparator.comparing(Student::getAverageScore, Comparator.nullsLast(Comparator.reverseOrder())))
-        // Note: Check if getAverageScore returns Double or primitive double. If object, nullsLast works.
+        students.sort(
+            Comparator.comparing(
+                Student::getAverageScore,
+                Comparator.nullsLast(Comparator.reverseOrder())
+            )
+        );
     }
 
     /**
@@ -60,6 +68,9 @@ public class ComparatorMasteryChallenge {
      * and .thenComparingInt(...) for optimization.
      */
     public void sortCoursesComplex() {
-        // TODO: courses.sort(...)
+        courses.sort(
+                    Comparator.comparing(Course::getPrice, Comparator.reverseOrder())
+                .thenComparing(Course::getDurationInHours)
+        )
     }
 }
