@@ -69,8 +69,8 @@ public class ComparatorMasteryChallenge {
      */
     public void sortCoursesComplex() {
         courses.sort(
-                    Comparator.comparing(Course::getPrice, Comparator.reverseOrder())
-                .thenComparing(Course::getDurationInHours)
-        )
+            Comparator.comparing(Course::getPrice, Comparator.reverseOrder())
+                .thenComparingInt(Course::getDurationInHours)
+        );
     }
 }

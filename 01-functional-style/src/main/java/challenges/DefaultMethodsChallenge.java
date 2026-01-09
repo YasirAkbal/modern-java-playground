@@ -20,20 +20,25 @@ public class DefaultMethodsChallenge {
 
     interface AuditLog {
         /**
-         * TODO TASK 1: Add a default method 'log'
          * It should print "Logging action..."
          */
+
+        default void log() {
+            System.out.println("Logging action...");
+        }
     }
 
     interface SecureLog {
         /**
-         * TODO TASK 2: Add a default method 'log'
          * It should print "Secure logging..."
          */
+
+        default void log() {
+            System.out.println("Secure logging...");
+        }
     }
 
     /**
-     * TODO TASK 3: Solve the Diamond Problem
      * Create a class `TransactionService` that implements both AuditLog and SecureLog.
      *
      * The compiler will complain about duplicate 'log' method from both interfaces.
@@ -52,6 +57,16 @@ public class DefaultMethodsChallenge {
      * }
      */
 
+    static class TransactionService implements AuditLog, SecureLog {
+
+        @Override
+        public void log() {
+            AuditLog.super.log();
+            SecureLog.super.log();
+        }
+
+    }
+
     /**
      * TODO TASK 4: Create a test method
      * Create a static method `main` to demonstrate:
@@ -59,4 +74,8 @@ public class DefaultMethodsChallenge {
      * - Calling the log() method to show how the diamond problem was resolved
      */
 
+    public static void main(String[] args) {
+        TransactionService transactionService = new TransactionService();
+        transactionService.log();
+    }
 }

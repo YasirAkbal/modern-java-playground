@@ -57,6 +57,8 @@ public class PrimitiveStreamChallenge {
      */
     public double[] generateRandomPrices() {
         // TODO: new Random().doubles(...).limit(5).toArray()
-        return DoubleStream.generate(() -> Math.random()).limit(5).toArray();
+        return DoubleStream.generate(() -> Math.random())
+                    .limit(5)
+                    .toArray();
     }
 }

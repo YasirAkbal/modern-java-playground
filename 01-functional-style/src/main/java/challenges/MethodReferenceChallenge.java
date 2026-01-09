@@ -43,8 +43,9 @@ public class MethodReferenceChallenge {
      * Refactor: s -> Integer.parseInt(s)
      */
     public List<Integer> parseNumbers(List<String> numberStrings) {
-        // placeholder - original solution removed
-        return null;
+        return numberStrings.stream()
+                .map(Integer::parseInt)
+                .toList();
     }
     
     /**
@@ -52,8 +53,7 @@ public class MethodReferenceChallenge {
      * Use StudentUtils::compareByLevel
      */
     public void sortStudentsByLevel(List<Student> list) {
-        // TODO: Use StudentUtils::compareByLevel
-        // list.sort(...);
+        list.sort(StudentUtils::compareByLevel);
     }
     
     // 
@@ -66,8 +66,12 @@ public class MethodReferenceChallenge {
      */
     public String joinStudentNames() {
         StringBuilder sb = new StringBuilder();
-        // placeholder - original solution removed
-        return "";
+        
+        students.stream()
+            .map(Student::getFullName)
+            .forEach(sb::append);
+
+        return sb.toString();
     }
     
     // 
@@ -79,8 +83,9 @@ public class MethodReferenceChallenge {
      * Refactor: s -> s.getEmail() to Student::getEmail
      */
     public List<String> extractEmails() {
-        // placeholder - original solution removed
-        return null;
+        return students.stream()
+                .map(Student::getEmail)
+                .toList();
     }
     
     /**
@@ -88,8 +93,10 @@ public class MethodReferenceChallenge {
      * Refactor: s -> s.toUpperCase() to String::toUpperCase
      */
     public List<String> getUpperCaseCourseTitles() {
-        // placeholder - original solution removed
-        return null;
+        return courses.stream()
+                .map(Course::getTitle)
+                .map(String::toUpperCase)
+                .toList();
     }
     
     // 
@@ -101,11 +108,16 @@ public class MethodReferenceChallenge {
      * Use StudentDTO::new
      */
     public List<StudentDTO> convertToDTO() {
-        // placeholder - original solution removed
-        return null;
+        return students.stream()
+                .map(StudentDTO::new)
+                .toList();
     }
     
-    public record StudentDTO(String id, String name, String email) {}
+    public record StudentDTO(String id, String name, String email) {
+        public StudentDTO(Student student) {
+            this(student.getId(), student.getFullName(), student.getEmail());   
+        }
+    }
     
     // Helper
     public static class StudentUtils {
