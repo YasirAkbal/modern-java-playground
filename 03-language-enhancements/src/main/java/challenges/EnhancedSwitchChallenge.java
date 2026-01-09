@@ -62,7 +62,13 @@ public class EnhancedSwitchChallenge {
      * @return Badge color
      */
     public String getBadgeColor(StudentLevel level) {
-        return null;
+        String badgeColor = switch(level) {
+            case StudentLevel.BEGINNER -> "Blue";
+            case StudentLevel.INTERMEDIATE -> "Green";
+            case StudentLevel.ADVANCED -> "Gold";
+            default -> "Undefined";
+        };
+        return badgeColor;
     }
 
     /**
@@ -82,7 +88,13 @@ public class EnhancedSwitchChallenge {
      * @return Credit points
      */
     public int getDifficultyLevelPoints(DifficultyLevel difficulty) {
-        return 0;
+        int difficultyLevelPoints = switch(difficulty) {
+            case DifficultyLevel.BEGINNER, DifficultyLevel.ELEMENTARY -> 2;
+            case DifficultyLevel.INTERMEDIATE -> 3;
+            case DifficultyLevel.ADVANCED, DifficultyLevel.EXPERT -> 5;
+        };
+        
+        return difficultyLevelPoints;
     }
 
     /**
@@ -97,12 +109,21 @@ public class EnhancedSwitchChallenge {
      * @return Status message
      */
     public String getStatusMessage(EnrollmentStatus status) {
-        // TODO: Use switch expression to map each status to a message
-        // ENROLLED -> "You are currently enrolled"
-        // IN_PROGRESS -> "Keep up the good work!"
-        // COMPLETED -> "Congratulations! Course completed."
-        // DROPPED -> "Sorry to see you go"
-        return null;
+        // PENDING -> "Enrollment is pending payment"
+        // ACTIVE -> "Student is actively learning"
+        // PAUSED -> "Student paused the course"
+        // COMPLETED -> "Course has been completed"
+        // CANCELLED -> "Enrollment was cancelled"
+        // EXPIRED -> "Enrollment has expired"
+
+        return switch(status) {
+            case EnrollmentStatus.PENDING -> "You are currently enrolled";
+            case EnrollmentStatus.ACTIVE -> "Student is actively learning";
+            case EnrollmentStatus.PAUSED -> "Student paused the course";
+            case EnrollmentStatus.COMPLETED -> "Course has been completed";
+            case EnrollmentStatus.CANCELLED -> "Enrollment was cancelled";
+            case EnrollmentStatus.EXPIRED -> "Enrollment has expired";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -125,7 +146,11 @@ public class EnhancedSwitchChallenge {
      * @throws IllegalArgumentException if day is not in 1-7 range
      */
     public String getDayType(int day) {
-        return null;
+        return switch(day) {
+            case 1,2,3,4,5 -> "Weekday";
+            case 6,7 -> "Weekend";
+            default -> throw new IllegalArgumentException("Invalid day");
+        };
     }
 
     /**
@@ -137,17 +162,21 @@ public class EnhancedSwitchChallenge {
      * EXAMPLE OUTPUT: "Technology"
      *
      * Mapping:
-     * - IT, DATA_SCIENCE -> "Technology"
+     * - PROGRAMMING, DATA_SCIENCE, WEB_DEVELOPMENT, MOBILE_DEVELOPMENT, DEVOPS, DATABAS, SECURITY -> "Technology"
      * - BUSINESS, MARKETING -> "Commerce"
-     * - DESIGN, ARTS -> "Creative"
-     * - LANGUAGE -> "Communication"
+     * - DESIGN -> "Creative"
      *
      * @param category Course category
      * @return Category group
      */
+
     public String getCategoryGroup(Category category) {
-        // TODO: Use multiple case labels to group categories
-        return null;
+    return switch(category) {
+        case PROGRAMMING, DATA_SCIENCE, WEB_DEVELOPMENT, 
+            MOBILE_DEVELOPMENT, DEVOPS, DATABASE, SECURITY -> "Technology";
+        case BUSINESS, MARKETING -> "Commerce";
+        case DESIGN -> "Creative";
+    };
     }
 
     /**
@@ -169,36 +198,57 @@ public class EnhancedSwitchChallenge {
      * @return Letter grade
      */
     public String getLetterGrade(double score) {
-        // TODO: Use switch on score/10 with multiple labels
         // Hint: switch ((int) score / 10) { case 10, 9 -> "A"; ... }
-        return null;
+        int calculatedScore = (int) (score / 10);
+        return switch(calculatedScore) {
+            case 10, 9 -> "A";
+            case 8 -> "B";
+            case 7 -> "C";
+            case 6 -> "D";
+            default -> "F";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // PART 3: Yield Keyword for Complex Logic
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /**
-     * TASK 3.1: Category Bonus Points
-     *
-     * Calculate bonus points with complex logic per category.
-     * Use yield for multi-statement blocks.
-     *
-     * EXAMPLE INPUT: Category.IT
-     * EXAMPLE OUTPUT: 100 (after logging)
-     *
-     * Logic:
-     * - IT: Log "High demand category", yield 100
-     * - DATA_SCIENCE: Log "Trending category", yield 120
-     * - BUSINESS: Log "Popular category", yield 80
-     * - Others: yield 50
-     *
-     * @param category Course category
-     * @return Bonus points
-     */
-    public int calculateCategoryBonus(Category category) {
-        return 0;
-    }
+        /**
+         * TASK 3.1: Category Bonus Points
+         *
+         * Calculate bonus points with complex logic per category.
+         * Use yield for multi-statement blocks.
+         *
+         * EXAMPLE INPUT: Category.IT
+         * EXAMPLE OUTPUT: 100 (after logging)
+         *
+         * Logic:
+         * - PROGRAMMING: Log "High demand category", yield 100
+         * - DATA_SCIENCE: Log "Trending category", yield 120
+         * - BUSINESS: Log "Popular category", yield 80
+         * - Others: yield 50
+         *
+         * @param category Course category
+         * @return Bonus points
+         */
+        
+        public int calculateCategoryBonus(Category category) {
+            return switch(category) {
+                case PROGRAMMING -> {
+                    System.out.println("High demand category");
+                    yield 100;
+                }
+                case DATA_SCIENCE -> {
+                    System.out.println("Trending category");
+                    yield 120;
+                }
+                case BUSINESS -> {
+                    System.out.println("Popular category");
+                    yield 80;
+                }
+                default -> 50;
+            };
+        }
 
     /**
      * TASK 3.2: Dynamic Discount Calculator
@@ -219,8 +269,18 @@ public class EnhancedSwitchChallenge {
      * @return Discount percentage (0.0 to 1.0)
      */
     public double calculateDiscount(StudentLevel level, boolean hasSubscription) {
-        // TODO: Implement with yield blocks checking hasSubscription
-        return 0.0;
+        return switch(level) {
+            case ADVANCED -> {
+                double discount = hasSubscription ? 0.3 : 0.2;
+                yield discount;
+            }
+            case INTERMEDIATE -> {
+                double discount = hasSubscription ? 0.2 : 0.1;
+                yield discount;
+            }
+            case BEGINNER -> 0.1;
+            default -> 0;
+        };
     }
 
     /**
@@ -241,8 +301,18 @@ public class EnhancedSwitchChallenge {
      * @return Validation message
      */
     public String validateEnrollment(StudentLevel studentLevel, DifficultyLevel courseDifficultyLevel) {
-        // TODO: Use switch with yield to implement validation logic
-        return null;
+        return switch (studentLevel) {
+            case BEGINNER -> switch (courseDifficultyLevel) {
+                case BEGINNER, ELEMENTARY -> "Approved: Enrollment successful";
+                default -> "Rejected: Course too advanced for your level";
+            };
+            case INTERMEDIATE -> switch (courseDifficultyLevel) {
+                case BEGINNER, ELEMENTARY, INTERMEDIATE -> "Approved: Enrollment successful";
+                default -> "Rejected: Course too advanced for your level";
+            };
+            case ADVANCED -> "Approved: Enrollment successful";
+            default -> "Undefined";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -254,13 +324,13 @@ public class EnhancedSwitchChallenge {
      *
      * Apply different pricing strategies based on category and difficulty.
      *
-     * EXAMPLE INPUT: Category.IT, DifficultyLevel.ADVANCED, basePrice=100
+     * EXAMPLE INPUT: Category.PROGRAMMING, DifficultyLevel.ADVANCED, basePrice=100
      * EXAMPLE OUTPUT: BigDecimal(150.00) - 50% markup for high-demand advanced course
      *
      * Strategy:
-     * - IT/DATA_SCIENCE + ADVANCED/EXPERT: 50% markup
-     * - IT/DATA_SCIENCE + INTERMEDIATE: 30% markup
-     * - IT/DATA_SCIENCE + BEGINNER/ELEMENTARY: 10% markup
+     * - PROGRAMMING/DATA_SCIENCE + ADVANCED/EXPERT: 50% markup
+     * - PROGRAMMING/DATA_SCIENCE + INTERMEDIATE: 30% markup
+     * - PROGRAMMING/DATA_SCIENCE + BEGINNER/ELEMENTARY: 10% markup
      * - Other categories: no markup
      *
      * @param category Course category
@@ -269,9 +339,15 @@ public class EnhancedSwitchChallenge {
      * @return Adjusted price
      */
     public BigDecimal calculateAdjustedPrice(Category category, DifficultyLevel difficulty, BigDecimal basePrice) {
-        // TODO: Use nested switch or combined logic
-        // Hint: You can switch on category, then switch on difficulty inside
-        return basePrice;
+        return switch(category) {
+            case PROGRAMMING, DATA_SCIENCE -> switch(difficulty) {
+                case ADVANCED, EXPERT -> basePrice.add(basePrice.multiply(BigDecimal.valueOf(0.5)));
+                case INTERMEDIATE -> basePrice.add(basePrice.multiply(BigDecimal.valueOf(0.3)));
+                case BEGINNER, ELEMENTARY -> basePrice.add(basePrice.multiply(BigDecimal.valueOf(0.1)));
+                default -> basePrice;
+            };
+            default -> basePrice;
+        };
     }
 
     /**
@@ -293,8 +369,15 @@ public class EnhancedSwitchChallenge {
      * @return Comma-separated notification channels
      */
     public String selectNotificationChannels(StudentLevel level, EnrollmentStatus status) {
-        // TODO: Implement with switch expressions
-        return null;
+        return switch(level) {
+            case ADVANCED -> "EMAIL,SMS,APP";
+            case INTERMEDIATE -> switch(status) {
+                case COMPLETED -> "EMAIL,APP";
+                default -> "EMAIL";
+            };
+            case BEGINNER -> "EMAIL";
+            default -> "NONE";
+        };  
     }
 
     /**
@@ -320,9 +403,34 @@ public class EnhancedSwitchChallenge {
     public int calculateRecommendationScore(StudentLevel studentLevel, DifficultyLevel courseDifficultyLevel,
                                             Category studentPreferredCategory, Category courseCategory,
                                             double courseRating) {
-        // TODO: Use multiple switch expressions to calculate total score
-        // Hint: Break down into separate switch expressions for each factor
-        return 0;
+        int matchScore = switch (studentLevel) {
+            case BEGINNER -> switch (courseDifficultyLevel) {
+                case BEGINNER, ELEMENTARY -> 40;
+                case INTERMEDIATE -> 20;
+                case ADVANCED, EXPERT -> 0;
+                default -> 0;
+            };
+            case INTERMEDIATE -> switch (courseDifficultyLevel) {
+                case BEGINNER -> 20;
+                case ELEMENTARY, INTERMEDIATE -> 40;
+                case ADVANCED -> 30;
+                case EXPERT -> 10;
+                default -> 0;
+            };
+            case ADVANCED -> switch (courseDifficultyLevel) {
+                case BEGINNER, ELEMENTARY -> 10;
+                case INTERMEDIATE -> 30;
+                case ADVANCED, EXPERT -> 40;
+                default -> 0;
+            };
+            default -> 0;
+        };
+
+        int categoryBonus = studentPreferredCategory == courseCategory ? 30 : 0;
+
+        int ratingBonus = (int) (courseRating * 6);
+
+        return matchScore + categoryBonus + ratingBonus;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -334,22 +442,27 @@ public class EnhancedSwitchChallenge {
      *
      * Determine if a student can access specific course features based on their status.
      *
-     * EXAMPLE INPUT: Status=COMPLETED, feature="CERTIFICATE"
+     * EXAMPLE INPUT: Status=ACTIVE, feature="CERTIFICATE"
      * EXAMPLE OUTPUT: true
      *
      * Rules:
-     * - COMPLETED: All features
-     * - IN_PROGRESS: MATERIALS, VIDEOS, QUIZZES
-     * - ENROLLED: PREVIEW only
-     * - DROPPED: No access
+     * - ACTIVE, COMPLETED: All features
+     * - PAUSED: MATERIALS, VIDEOS, QUIZZES
+     * - CANCELLED, EXPIRED, PENDING: No access
      *
      * @param status Enrollment status
      * @param feature Feature name
      * @return true if access granted
      */
     public boolean canAccessFeature(EnrollmentStatus status, String feature) {
-        // TODO: Use switch expression returning boolean
-        return false;
+        return switch(status) {
+            case ACTIVE, COMPLETED -> true;
+            case PAUSED -> switch(feature) {
+                case "MATERIALS", "VIDEOS", "QUIZZES" -> true;
+                default -> false;
+            };
+            case CANCELLED, EXPIRED, PENDING -> false;
+        };
     }
 
     /**
@@ -373,8 +486,23 @@ public class EnhancedSwitchChallenge {
      * @return Certificate type
      */
     public String determineCertificateType(double score, DifficultyLevel difficulty) {
-        // TODO: Combine switch on difficulty with score checks
-        return null;
+        int normalizedScore = (int) (score / 10);
+        return switch(difficulty) {
+            case ADVANCED, EXPERT -> switch(normalizedScore) {
+                case 10, 9 -> "DISTINCTION";
+                case 8, 7 -> "MERIT";
+                default -> "COMPLETION";
+            };
+            case INTERMEDIATE -> switch(normalizedScore) {
+                case 10, 9, 8 -> "DISTINCTION";
+                case 7 -> "MERIT";
+                default -> "COMPLETION";
+            };
+            case BEGINNER, ELEMENTARY -> switch(normalizedScore) {
+                case 10, 9 -> "MERIT";
+                default -> "COMPLETION";
+            };
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -300,7 +300,6 @@ public class LambdaFundamentalsChallenge {
      * Hint: You might need to check Enrollment constructor in model.
      */
     public TriFunction<Student, Course, Double, Enrollment> createEnrollmentFactory() {
-         // TODO: (s, c, score) -> new Enrollment(...)
          return (student, course, score) -> {
             Enrollment enrollment = new Enrollment("1", student.getId(), course);
             enrollment.setScore(score);
