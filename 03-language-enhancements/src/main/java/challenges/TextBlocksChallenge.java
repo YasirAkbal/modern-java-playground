@@ -4,6 +4,7 @@ import data.SampleDataGenerator;
 import model.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -57,8 +58,12 @@ public class TextBlocksChallenge {
      * @return SQL query as text block
      */
     public String getTopStudentsQuery() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+        SELECT * FROM students
+        WHERE level = 'ADVANCED'
+        ORDER BY average_score DESC
+        LIMIT 10
+        """;
     }
 
     /**
@@ -78,8 +83,12 @@ public class TextBlocksChallenge {
      * @return Formatted SQL query
      */
     public String getStudentEnrollmentsQuery(String studentId) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            SELECT e.id, c.title, e.score
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            WHERE e.student_id = '%s'
+            """.formatted(studentId);
     }
 
     /**
@@ -101,8 +110,16 @@ public class TextBlocksChallenge {
      * @return Complex aggregation query
      */
     public String getCourseStatisticsQuery() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            SELECT c.title,
+                   COUNT(e.id) as total_enrollments,
+                   AVG(e.score) as average_score
+            FROM courses c
+            LEFT JOIN enrollments e ON c.id = e.course_id
+            GROUP BY c.title
+            HAVING COUNT(e.id) > 5
+            ORDER BY average_score DESC
+            """;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -131,7 +148,16 @@ public class TextBlocksChallenge {
      */
     public String generateStudentJson(Student student) {
         // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            {
+                "id": "%s",
+                "firstName": "%s",
+                "lastName": "%s",
+                "email": "%s",
+                "level": "%s"
+            }
+            """.formatted(student.getId(), student.getFirstName(), student.getLastName(),
+                          student.getEmail(), student.getLevel());
     }
 
     /**
@@ -155,8 +181,17 @@ public class TextBlocksChallenge {
      * @return JSON with nested instructor
      */
     public String generateCourseJson(Course course) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            {
+                "id": "%s",
+                "title": "%s",
+                "price": %s,
+                "instructor": {
+                    "id": "%s",
+                    "name": "%s"
+                }
+            }
+            """.formatted(course.getId(), course.getTitle(), course.getPrice(), course.getInstructor().getId(), course.getInstructor().getFullName());
     }
 
     /**
@@ -177,8 +212,10 @@ public class TextBlocksChallenge {
      * @return JSON array
      */
     public String generateStudentArrayJson(List<Student> students) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return students.stream()
+            .map(s -> """
+                {"id": "%s", "name": "%s"}""".formatted(s.getId(), s.getFullName()))
+            .collect(Collectors.joining(",\n", "[\n", "\n]"));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -205,8 +242,15 @@ public class TextBlocksChallenge {
      * @return HTML email content
      */
     public String generateWelcomeEmail(String studentName) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+                <!DOCTYPE html>
+                <html>
+                <body>
+                    <h1>Welcome to EduMaster, %s!</h1>
+                    <p>We're excited to have you join our learning community.</p>
+                </body>
+                </html>
+                """.formatted(studentName);
     }
 
     /**
@@ -240,8 +284,24 @@ public class TextBlocksChallenge {
      * @return HTML email with styling
      */
     public String generateEnrollmentConfirmation(String studentName, String courseTitle, double price) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            <html>
+            <head>
+                <style>
+                    .header { color: #2c3e50; }
+                    .details { background: #ecf0f1; padding: 10px; }
+                </style>
+            </head>
+            <body>
+                <h2 class="header">Enrollment Confirmed!</h2>
+                <div class="details">
+                    <p>Student: %s</p>
+                    <p>Course: %s</p>
+                    <p>Price: $%.2f</p>
+                </div>
+            </body>
+            </html>
+            """.formatted(studentName, courseTitle, price);
     }
 
     /**
@@ -256,8 +316,18 @@ public class TextBlocksChallenge {
      * @return HTML certificate
      */
     public String generateCompletionCertificate(String studentName, String courseTitle, String completionDate) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            <html>
+            <body style="text-align: center; border: 4px solid blue; padding: 16px;">
+                <h1>Certificate of Completion</h1>
+                <p>This certifies that</p>  
+                <h2>%s</h2>
+                <p>has successfully completed the course</p>
+                <h2>%s</h2>
+                <p>on %s</p>
+            </body>
+            </html>
+            """.formatted(studentName, courseTitle, completionDate);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -280,8 +350,11 @@ public class TextBlocksChallenge {
      * @return Formatted table with preserved whitespace
      */
     public String generateAlignedTable() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            ID     Name            Email
+            S001   John Doe        john@edu.com \s
+            S002   Jane Smith      jane@edu.com \s
+            """;
     }
 
     /**
@@ -299,8 +372,10 @@ public class TextBlocksChallenge {
      * @return Single-line output from multi-line source
      */
     public String generateContinuousLine() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            This is a very long sentence that spans multiple lines in the source code \
+            but appears as a single continuous line in the output.
+            """;
     }
 
     /**
@@ -320,7 +395,13 @@ public class TextBlocksChallenge {
      */
     public String generateCodeSnippet() {
         // Placeholder: original implementation removed for challenge reset
-        return null;
+        return """
+            public static void main(String[] args) {
+                String message = "Hello \"World\"";
+                String path = "C:\\Users\\Documents";
+                System.out.println(message);
+            }
+            """;
     }
 
     /**
@@ -346,8 +427,28 @@ public class TextBlocksChallenge {
      * @return Complete enrollment report
      */
     public String generateEnrollmentReport() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        StringBuilder reportBuilder = new StringBuilder();
+        List<Student> reportStudents = students.subList(0, 2); 
+        reportBuilder.append("""
+            ╔════════════════════════════════════════╗
+            ║        ENROLLMENT REPORT               ║
+            ╚════════════════════════════════════════╝
+
+            """);
+
+        reportStudents.forEach(s -> {
+            List<Enrollment> enrollments = s.getEnrollments();
+            String courseList = enrollments.stream()
+                .map(e -> "- " + e.getCourse().getTitle())
+                .collect(Collectors.joining("\n"));
+            reportBuilder.append("""
+                Student: %s (%s)
+                Courses Enrolled: %d
+                    """.formatted(s.getFullName(), s.getId(), enrollments.size()));
+            reportBuilder.append(courseList).append("\n");
+        });
+   
+        return reportBuilder.toString();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
