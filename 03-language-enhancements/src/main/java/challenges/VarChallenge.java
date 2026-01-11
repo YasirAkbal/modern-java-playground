@@ -66,7 +66,11 @@ public class VarChallenge {
      * @return Map containing application configuration
      */
     public Map<String, Object> getApplicationConfig() {
-        return null;
+        return Map.of(
+            "appName", "EduMaster",
+            "version", "1.0.0",
+            "maxStudents", 1000
+        );
     }
 
     /**
@@ -80,10 +84,13 @@ public class VarChallenge {
      *
      * @return Total revenue as BigDecimal
      */
-    public BigDecimal calculateTotalRevenue() {
-        // TODO: Use var for totalRevenue, count, and avgPrice variables
-        // Hint: courses.stream().map(Course::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add)
-        return BigDecimal.ZERO;
+    public BigDecimal calculateAvgPrice() {
+        var totalRevenue = courses.stream()
+            .map(Course::getPrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var count = courses.size();
+        var avgPrice = count > 0 ? totalRevenue.divide(BigDecimal.valueOf(count)) : BigDecimal.ZERO;
+        return avgPrice;
     }
 
     /**
@@ -98,8 +105,10 @@ public class VarChallenge {
      * @return Formatted string
      */
     public String formatStudentInfo(Student student) {
-        // TODO: Use var for fullName, email, and result
-        return null;
+        var fullName = student.getFirstName() + " " + student.getLastName();
+        var email = student.getEmail();
+        var result = fullName.toUpperCase() + " (" + email + ")";
+        return result;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -119,7 +128,9 @@ public class VarChallenge {
      * @return Courses grouped by category
      */
     public Map<Category, List<Course>> groupCoursesByCategory() {
-        return null;
+        var coursesByCategory = courses.stream()
+            .collect(Collectors.groupingBy(Course::getCategory));
+        return coursesByCategory;
     }
 
     /**
@@ -134,9 +145,28 @@ public class VarChallenge {
      * @return Nested map structure
      */
     public Map<StudentLevel, Map<Category, List<Student>>> createStudentInterestMatrix() {
-        // TODO: Use var for the nested map and intermediate variables
-        // Hint: Group students by level, then for each level create a map of categories
-        return null;
+        var studentsByLevel = students.stream()
+            .collect(Collectors.groupingBy(Student::getLevel));
+
+        var result = new HashMap<StudentLevel, Map<Category, List<Student>>>();
+
+        for (var entry : studentsByLevel.entrySet()) {
+            var level = entry.getKey();
+            var levelStudents = entry.getValue();
+            var categoryMap = new HashMap<Category, List<Student>>();
+
+            for (var category : Category.values()) {
+                // Group students by category based on their enrolled courses
+                var interestedStudents = levelStudents.stream()
+                    .filter(s -> s.getEnrollments().stream()
+                        .anyMatch(e -> e.getCourse() != null && e.getCourse().getCategory() == category))
+                    .collect(Collectors.toList());
+                categoryMap.put(category, interestedStudents);
+            }
+            result.put(level, categoryMap);
+        }
+
+        return result;
     }
 
     /**
@@ -150,8 +180,16 @@ public class VarChallenge {
      * @return Sorted list of published course titles
      */
     public List<String> getPublishedCourseTitles() {
-        // TODO: Use var for filtered list, titles list
-        return null;
+        var publishedCourses = courses.stream()
+            .filter(Course::isPublished)
+            .collect(Collectors.toList());
+
+        var titles = publishedCourses.stream()
+            .map(Course::getTitle)
+            .sorted()
+            .collect(Collectors.toList());
+
+        return titles;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -170,7 +208,15 @@ public class VarChallenge {
      * Prints active students with their enrollment count.
      */
     public void printActiveStudents() {
-        return;
+        for (var student : students) {
+            if (student.isActive()) {
+                var enrollmentCount = enrollments.stream()
+                    .filter(e -> e.getStudentId().equals(student.getId()))
+                    .count();
+                System.out.println(student.getFirstName() + " " + student.getLastName() +
+                    " - Enrollments: " + enrollmentCount);
+            }
+        }
     }
 
     /**
@@ -186,8 +232,11 @@ public class VarChallenge {
      * @param limit Maximum number of courses to list
      */
     public void listTopCourses(int limit) {
-        // TODO: Use var for loop counter, course variable, and title
-        // Hint: for (var i = 0; i < Math.min(limit, courses.size()); i++)
+        for (var i = 0; i < Math.min(limit, courses.size()); i++) {
+            var course = courses.get(i);
+            var title = course.getTitle();
+            System.out.println((i + 1) + ". " + title);
+        }
     }
 
     /**
@@ -198,9 +247,13 @@ public class VarChallenge {
      * @return List of course IDs
      */
     public List<String> getCourseIds() {
-        // TODO: Use var for result list and iterator
-        // Hint: var iterator = courses.iterator();
-        return null;
+        var result = new ArrayList<String>();
+        var iterator = courses.iterator();
+        while (iterator.hasNext()) {
+            var course = iterator.next();
+            result.add(course.getId());
+        }
+        return result;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -221,7 +274,17 @@ public class VarChallenge {
      * @return Processed content
      */
     public String processContent(String content) {
-        return null;
+        try (var reader = new StringReader(content)) {
+            var result = new StringBuilder();
+            var buffer = new char[1024];
+            var charsRead = 0;
+            while ((charsRead = reader.read(buffer)) != -1) {
+                result.append(buffer, 0, charsRead);
+            }
+            return result.toString().toUpperCase();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -234,8 +297,26 @@ public class VarChallenge {
      * @return Combined output
      */
     public String combineInputs(String input1, String input2) {
-        // TODO: Use var for try-with-resources with two StringReaders
-        return null;
+        try (var reader1 = new StringReader(input1);
+             var reader2 = new StringReader(input2)) {
+            var result = new StringBuilder();
+            var buffer = new char[1024];
+            var charsRead = 0;
+
+            while ((charsRead = reader1.read(buffer)) != -1) {
+                result.append(buffer, 0, charsRead);
+            }
+
+            result.append(" | ");
+
+            while ((charsRead = reader2.read(buffer)) != -1) {
+                result.append(buffer, 0, charsRead);
+            }
+
+            return result.toString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -258,7 +339,17 @@ public class VarChallenge {
      * @return Count value from anonymous object
      */
     public int demonstrateAnonymousClass() {
-        return 0;
+        var counter = new Object() {
+            int count = 0;
+            void increment() { count++; }
+            void add(int value) { count += value; }
+        };
+
+        counter.increment();
+        counter.increment();
+        counter.add(5);
+
+        return counter.count;
     }
 
     /**
@@ -270,10 +361,16 @@ public class VarChallenge {
      * @return Result from intersection type
      */
     public String demonstrateIntersectionType() {
-        // TODO: Create anonymous class implementing multiple interfaces
-        // var processor = new Object() implements Comparable, Serializable...
-        // This is an advanced case - show how var captures the full type
-        return null;
+        var processor = new Object() {
+            String data = "Intersection Type Demo";
+            int priority = 1;
+
+            String process() {
+                return data + " (Priority: " + priority + ")";
+            }
+        };
+
+        return processor.process();
     }
 
     /**
@@ -289,9 +386,27 @@ public class VarChallenge {
      * @return Statistics about student enrollments
      */
     public Map<String, Object> getEnrollmentStatistics() {
-        // TODO: Use var for each stream operation step
-        // Calculate: total enrollments, avg per student, max enrollments per student
-        return null;
+        var totalEnrollments = enrollments.size();
+
+        var enrollmentsByStudent = enrollments.stream()
+            .collect(Collectors.groupingBy(Enrollment::getStudentId, Collectors.counting()));
+
+        var avgPerStudent = enrollmentsByStudent.values().stream()
+            .mapToLong(Long::longValue)
+            .average()
+            .orElse(0.0);
+
+        var maxEnrollments = enrollmentsByStudent.values().stream()
+            .mapToLong(Long::longValue)
+            .max()
+            .orElse(0L);
+
+        var result = new HashMap<String, Object>();
+        result.put("totalEnrollments", totalEnrollments);
+        result.put("avgPerStudent", avgPerStudent);
+        result.put("maxEnrollmentsPerStudent", maxEnrollments);
+
+        return result;
     }
 
     /**
@@ -302,9 +417,28 @@ public class VarChallenge {
      * @return Configured course object
      */
     public Course createSampleCourse() {
-        // TODO: Use var for course, lessons list, instructor, etc.
-        // Build a complete course with lessons
-        return null;
+        var instructor = instructors.isEmpty() ? null : instructors.get(0);
+        var courseId = "COURSE-" + System.currentTimeMillis();
+        var title = "Advanced Java Programming";
+        var description = "Master modern Java features";
+        var price = new BigDecimal("299.99");
+        var category = Category.PROGRAMMING;
+        var difficulty = DifficultyLevel.ADVANCED;
+
+        var course = new Course(courseId, title, description, category, difficulty, price, instructor);
+        course.setPublished(true);
+
+        var lessons = new ArrayList<Lesson>();
+        var lesson1 = new Lesson("L1", "Introduction to Modern Java", "Overview of Java 10+",
+            LessonType.VIDEO, 1, java.time.Duration.ofMinutes(30));
+        var lesson2 = new Lesson("L2", "var Keyword Deep Dive", "Type inference mastery",
+            LessonType.VIDEO, 2, java.time.Duration.ofMinutes(45));
+        lessons.add(lesson1);
+        lessons.add(lesson2);
+
+        course.setLessons(lessons);
+
+        return course;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -317,7 +451,21 @@ public class VarChallenge {
      * Demonstrate cases where var makes code more readable.
      */
     public void demonstrateGoodVarUsage() {
-        return;
+        // GOOD: Type is obvious from initializer
+        var appName = "EduMaster";
+        var maxStudents = 1000;
+        var isActive = true;
+
+        // GOOD: Reduces verbosity with complex generic types
+        var studentsByCourse = new HashMap<Course, List<Student>>();
+        var coursesByInstructor = courses.stream()
+            .collect(Collectors.groupingBy(Course::getInstructor));
+
+        // GOOD: Clear from method name
+        var activeStudents = getActiveStudents();
+        var totalCourses = calculateTotalCourses();
+
+        System.out.println("Good var usage demonstrated");
     }
 
     /**
@@ -326,10 +474,22 @@ public class VarChallenge {
      * Show cases where explicit types are better for readability.
      */
     public void demonstratePoorVarUsage() {
-        // TODO: Show examples where var hurts readability
-        // BAD: var result = process(); // What type is result?
-        // BAD: var x = computeValue(); // Non-descriptive name + var
-        // GOOD: StudentReport report = generateReport();
+        // BAD: Type not clear from context
+        // var data = getData(); // What type is data?
+
+        // BAD: Non-descriptive variable name
+        // var x = computeValue();
+        // var temp = process();
+
+        // BAD: Numeric literals - prefer explicit type
+        // var result = 10; // Is this int, long, or something else?
+
+        // GOOD ALTERNATIVES:
+        Student student = students.get(0); // Clear type when not obvious
+        int count = 10; // Explicit for primitives when context matters
+        List<String> names = List.of("Alice", "Bob"); // Clear when type isn't obvious
+
+        System.out.println("Poor var usage examples shown");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
