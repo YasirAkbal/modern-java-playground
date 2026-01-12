@@ -6,7 +6,9 @@
       "Bash(dir)",
       "Bash(wc:*)",
       "Bash(dir:*)",
-      "Bash(javac:*)"
+      "Bash(javac:*)",
+      "Bash(./gradlew run:*)",
+      "Bash(java:*)"
     ]
   }
 }

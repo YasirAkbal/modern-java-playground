@@ -80,7 +80,16 @@ public class AdvancedRecordsChallenge {
      * @return List of valid email addresses
      */
     public List<EmailAddress> getValidStudentEmails() {
-        return null;
+        return students.stream()
+                .map(Student::getEmail)
+                .flatMap(email -> {
+                    try {
+                        return Stream.of(new EmailAddress(email));
+                    } catch (IllegalArgumentException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
     }
 
     /**
@@ -92,8 +101,9 @@ public class AdvancedRecordsChallenge {
      * @return List of matching email addresses
      */
     public List<EmailAddress> getEmailsByDomain(String domain) {
-        // TODO: Filter valid emails by domain suffix
-        return null;
+        return getValidStudentEmails().stream()
+                    .filter(email -> email.value.endsWith("@gmail.com"))
+                    .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -153,8 +163,11 @@ public class AdvancedRecordsChallenge {
      * @return List of score ranges
      */
     public List<Range> getScoreRanges() {
-        // TODO: Create and return list of 3 Range objects
-        return null;
+        List<Range> ranges = new ArrayList<>();
+        ranges.add(new Range(0, 59));    
+        ranges.add(new Range(60, 79));   
+        ranges.add(new Range(80, 100));  
+        return ranges;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -195,7 +208,9 @@ public class AdvancedRecordsChallenge {
      * @return List of course products
      */
     public List<Product> getCoursesAsProducts() {
-        return null;
+        return courses.stream()
+                .map(c -> new Product(c.getId(), c.getTitle(), c.getPrice()))
+                .toList();
     }
 
     /**
@@ -207,8 +222,9 @@ public class AdvancedRecordsChallenge {
      * @return Optional containing the product if found
      */
     public Optional<Product> findProductById(String productId) {
-        // TODO: Stream products and filter by id() method
-        return null;
+        return getCoursesAsProducts().stream()
+                .filter(p -> p.id().equals(productId))
+                .findFirst();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -252,8 +268,9 @@ public class AdvancedRecordsChallenge {
      * @return List of rectangles
      */
     public List<Rectangle> createRectangles(List<int[]> dimensions) {
-        // TODO: Map each {width, height} to Rectangle with topLeft at (0,0)
-        return null;
+        return dimensions.stream()
+                .map(dim -> new Rectangle(new Point(0, 0), new Point(dim[0], dim[1])))
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -294,7 +311,28 @@ public class AdvancedRecordsChallenge {
      * </pre>
      */
     public List<CourseDetail> getCourseDetails() {
-        return null;
+        return courses.stream()
+                .map(c -> {
+                    String instructorName = c.getInstructor().getFullName();
+                    List<LessonInfo> lessonInfos = c.getLessons().stream()
+                            .map(l -> new LessonInfo(l.getId(), l.getTitle(), l.getOrderIndex()))
+                            .toList();
+                    int totalLessons = lessonInfos.size();
+                    int totalDuration = c.getLessons().stream()
+                            .mapToInt(l -> (int) l.getDuration().toMinutes())
+                            .sum();
+
+                    return new CourseDetail(
+                            c.getId(),
+                            c.getTitle(),
+                            c.getPrice(),
+                            instructorName,
+                            lessonInfos,
+                            totalLessons,
+                            totalDuration
+                    );
+                })
+                .toList();
     }
 
     /**
@@ -305,8 +343,9 @@ public class AdvancedRecordsChallenge {
      * @return List of long courses
      */
     public List<CourseDetail> getLongCourses() {
-        // TODO: Filter getCourseDetails() where totalLessons > 10
-        return null;
+        return getCourseDetails().stream()
+                .filter(c -> c.totalLessons > 10)
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -333,8 +372,54 @@ public class AdvancedRecordsChallenge {
      * @return List of enrollment summaries
      */
     public List<EnrollmentSummary> getEnrollmentSummaries() {
-        // TODO: Group enrollments by student, calculate stats, create summaries
-        return null;
+        // Group enrollments by student ID
+        Map<String, List<Enrollment>> enrollmentsByStudent = enrollments.stream()
+                .collect(Collectors.groupingBy(Enrollment::getStudentId));
+
+        // Create summaries for each student
+        return enrollmentsByStudent.entrySet().stream()
+                .map(entry -> {
+                    String studentId = entry.getKey();
+                    List<Enrollment> studentEnrollments = entry.getValue();
+
+                    // Find the student
+                    Student student = students.stream()
+                            .filter(s -> s.getId().equals(studentId))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (student == null) {
+                        return null;
+                    }
+
+                    // Calculate statistics
+                    int totalEnrollments = studentEnrollments.size();
+
+                    int completedCourses = (int) studentEnrollments.stream()
+                            .filter(Enrollment::isCompleted)
+                            .count();
+
+                    List<String> activeCourses = studentEnrollments.stream()
+                            .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
+                            .map(e -> e.getCourse().getTitle())
+                            .toList();
+
+                    double averageProgress = studentEnrollments.stream()
+                            .mapToInt(Enrollment::getProgressPercentage)
+                            .average()
+                            .orElse(0.0);
+
+                    return new EnrollmentSummary(
+                            studentId,
+                            student.getFullName(),
+                            totalEnrollments,
+                            completedCourses,
+                            activeCourses,
+                            averageProgress
+                    );
+                })
+                .filter(summary -> summary != null)
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -369,7 +454,26 @@ public class AdvancedRecordsChallenge {
      * </pre>
      */
     public List<PaymentTransaction> getCompletedTransactions() {
-        return null;
+        return payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
+                .map(p -> {
+                    // Find the course title
+                    String courseTitle = courses.stream()
+                            .filter(c -> c.getId().equals(p.getCourseId()))
+                            .map(Course::getTitle)
+                            .findFirst()
+                            .orElse("Unknown Course");
+
+                    return new PaymentTransaction(
+                            p.getTransactionId() != null ? p.getTransactionId() : p.getId(),
+                            p.getStudentId(),
+                            courseTitle,
+                            p.getFinalAmount(),
+                            p.getStatus(),
+                            p.getProcessedAt() != null ? p.getProcessedAt() : p.getCreatedAt()
+                    );
+                })
+                .toList();
     }
 
     /**
@@ -380,8 +484,9 @@ public class AdvancedRecordsChallenge {
      * @return Total revenue
      */
     public BigDecimal getTotalRevenue() {
-        // TODO: Use getCompletedTransactions and sum amounts
-        return null;
+        return getCompletedTransactions().stream()
+                .map(PaymentTransaction::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static void main(String[] args) {

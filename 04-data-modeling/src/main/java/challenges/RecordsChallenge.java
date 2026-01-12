@@ -71,7 +71,9 @@ public class RecordsChallenge {
      * </pre>
      */
     public List<StudentSummary> getStudentSummaries() {
-        return null;
+        return students.stream()
+                .map(s -> new StudentSummary(s.getId(), s.getFullName(), s.getAverageScore()))
+                .toList();
     }
 
     /**
@@ -82,8 +84,10 @@ public class RecordsChallenge {
      * @return List of high-performing student summaries
      */
     public List<StudentSummary> getHighPerformers() {
-        // TODO: filter students with averageScore >= 3.5, then map to StudentSummary
-        return null;
+        return students.stream()
+                .filter(s -> s.getAverageScore() >= 3.5)
+                .map(s -> new StudentSummary(s.getId(), s.getFullName(), s.getAverageScore()))
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -136,8 +140,9 @@ public class RecordsChallenge {
      * @return List of course configurations
      */
     public List<CourseConfig> getCourseConfigs() {
-        // TODO: map courses to CourseConfig(enrollmentCount, durationInHours * 60)
-        return null;
+        return courses.stream()
+            .map(c -> new CourseConfig(c.getEnrollmentCount(), c.getDurationInHours() * 60))
+            .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -183,7 +188,16 @@ public class RecordsChallenge {
      * </pre>
      */
     public List<CourseSummary> getCourseSummaries() {
-        return null;
+        return courses.stream()
+                .map(c ->  {
+                    Instructor instructor = c.getInstructor();
+                    InstructorInfo instructorInfo = new InstructorInfo(instructor.getId(), 
+                        instructor.getFullName(), instructor.getSpecialization());
+                    
+                    return new CourseSummary(c.getId(), c.getTitle(), 
+                        c.getPrice(), instructorInfo);
+                })
+                .toList();
     }
 
     /**
@@ -194,8 +208,19 @@ public class RecordsChallenge {
      * @return List of expensive course summaries
      */
     public List<CourseSummary> getExpensiveCourseSummaries() {
-        // TODO: filter price > 100, map to CourseSummary
-        return null;
+        final BigDecimal oneHundred = BigDecimal.valueOf(100);
+
+        return courses.stream()
+                .filter(c -> c.getPrice() != null && c.getPrice().compareTo(oneHundred) > 0)
+                .map(c ->  {
+                    Instructor instructor = c.getInstructor();
+                    InstructorInfo instructorInfo = new InstructorInfo(instructor.getId(), 
+                        instructor.getFullName(), instructor.getSpecialization());
+                    
+                    return new CourseSummary(c.getId(), c.getTitle(), 
+                        c.getPrice(), instructorInfo);
+                })
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -228,12 +253,25 @@ public class RecordsChallenge {
      * @return List of progress reports
      */
     public List<ProgressReport> getProgressReports() {
-        // TODO: Implement
-        // For each student with enrollments:
-        // - Get list of enrolled course titles
-        // - Calculate average progress across enrollments
-        // - Create ProgressReport
-        return null;
+        return students.stream()
+                .filter(s -> enrollments.stream().anyMatch(e -> e.getStudentId().equals(s.getId())))
+                .map(s -> {
+                    List<Enrollment> studentEnrollments = enrollments.stream()
+                            .filter(e -> e.getStudentId().equals(s.getId()))
+                            .toList();
+
+                    List<String> courseTitles = studentEnrollments.stream()
+                            .map(e -> e.getCourse().getTitle())
+                            .toList();
+
+                    double avgProgress = studentEnrollments.stream()
+                            .mapToDouble(Enrollment::getProgressPercentage)
+                            .average()
+                            .orElse(0.0);
+
+                    return new ProgressReport(s.getFullName(), courseTitles, avgProgress);
+                })
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -262,7 +300,9 @@ public class RecordsChallenge {
      * </pre>
      */
     public Map<CategoryDifficulty, Long> groupCoursesByTypeAndLevel() {
-        return null;
+        return courses.stream()
+                .map(c -> new CategoryDifficulty(c.getCategory(), c.getDifficulty()))
+                .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
     }
 
     /**
@@ -273,8 +313,8 @@ public class RecordsChallenge {
      * @return Optional containing the most common combination
      */
     public Optional<Map.Entry<CategoryDifficulty, Long>> getMostCommonCombination() {
-        // TODO: Use groupCoursesByTypeAndLevel and find max by value
-        return null;
+        return groupCoursesByTypeAndLevel().entrySet().stream()
+                .max(Map.Entry.comparingByValue());
     }
 
     public static void main(String[] args) {
