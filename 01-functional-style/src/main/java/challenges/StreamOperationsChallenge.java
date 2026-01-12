@@ -62,9 +62,17 @@ public class StreamOperationsChallenge {
         BigDecimal oneHundred = BigDecimal.valueOf(100);
         BigDecimal priceMultiplier = BigDecimal.valueOf(0.8);
         var newPriceList = courses.stream()
-                                .filter(c -> c.getPrice().compareTo(oneHundred) > 0)
-                                .map(c -> c.getPrice().multiply(priceMultiplier))
+                                .map(c -> {
+                                    BigDecimal price = c.getPrice();
+                                    if (price == null) return BigDecimal.ZERO;
+
+                                    return price.compareTo(oneHundred) > 0 ?  
+                                        price.multiply(priceMultiplier) : 
+                                        price;
+                                })
+                                .sorted()
                                 .toList();
+
         return newPriceList;
     }
 

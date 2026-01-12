@@ -6,9 +6,12 @@ import model.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -69,8 +72,8 @@ public class TimeZoneMasteryChallenge {
      * @return Webinar time in target zone
      */
     public ZonedDateTime convertWebinarTime(LocalDateTime londonLocalTime, String targetZoneId) {
-        // placeholder - original solution removed
-        return null;
+        return ZonedDateTime.of(londonLocalTime, ZoneId.of("Europe/London"))
+                .withZoneSameInstant(ZoneId.of(targetZoneId));
     }
 
     /**
@@ -89,8 +92,14 @@ public class TimeZoneMasteryChallenge {
      * @return Formatted string showing times in all zones
      */
     public String showTimeInMultipleZones(LocalDateTime courseStart) {
-        // placeholder - original solution removed
-        return null;
+        ZonedDateTime zonedNY = ZonedDateTime.of(courseStart, ZoneId.of("America/New_York"));
+        List<String> zones = Arrays.asList("America/New_York","Europe/London", "Asia/Tokyo", "Australia/Sydney");
+
+        return zones.stream()
+                .map(z -> zonedNY.withZoneSameInstant(ZoneId.of(z)))
+                .map(z -> "%s: %s".formatted(z.getZone().getId(), 
+                    z.format(DateTimeFormatter.ofPattern("hh:mm"))))
+                .collect(Collectors.joining(", "));
     }
 
     /**
@@ -110,8 +119,9 @@ public class TimeZoneMasteryChallenge {
      * @return true if during business hours (9am-5pm)
      */
     public boolean isDuringBusinessHours(ZonedDateTime time, String targetZoneId) {
-        // placeholder - original solution removed
-        return false;
+        var targetTime =  time.withZoneSameInstant(ZoneId.of(targetZoneId));
+
+        return targetTime.getHour() >= 9 && targetTime.getHour() <= 17;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -135,8 +145,9 @@ public class TimeZoneMasteryChallenge {
      * @return Arrival time in Paris
      */
     public ZonedDateTime calculateFlightArrival(LocalDateTime departureLocal, Duration flightDuration) {
-        // placeholder - original solution removed
-        return null;
+        return departureLocal.atZone(ZoneId.of("America/New_York"))
+                .plus(flightDuration)
+                .withZoneSameInstant(ZoneId.of("Europe/Paris"));
     }
 
     /**
@@ -157,8 +168,7 @@ public class TimeZoneMasteryChallenge {
      * @return Duration in minutes
      */
     public long calculateWebinarDurationMinutes(ZonedDateTime startUtc, ZonedDateTime endUtc) {
-        // placeholder - original solution removed
-        return 0;
+        return ChronoUnit.MINUTES.between(startUtc, endUtc);
     }
 
     /**
@@ -180,8 +190,28 @@ public class TimeZoneMasteryChallenge {
      * @return Analysis string showing times in each zone
      */
     public String analyzeOptimalMeetingTime(LocalDate date) {
-        // placeholder - original solution removed
-        return null;
+        ZonedDateTime proposedTimeUtc = ZonedDateTime.of(
+                LocalDateTime.of(date, LocalTime.of(14, 0)),
+                ZoneId.of("UTC")
+        );
+
+        StringBuilder result = new StringBuilder();
+        result.append("14:00 UTC = ");
+        Map<String, String> zones = Map.of(
+                "America/Los_Angeles", "LA",
+                "Europe/London", "London",
+                "Asia/Singapore", "Singapore"
+        );
+        for (var entry : zones.entrySet()) {
+            var zoneId = entry.getKey();
+            var zoneName = entry.getValue();
+            var localTime = proposedTimeUtc.withZoneSameInstant(ZoneId.of(zoneId));
+            boolean isBusinessHours = localTime.getHour() >= 9 && localTime.getHour() <= 17;
+            result.append(String.format("%s: %02d:00 (%s), ", zoneName, localTime.getHour(),
+                    isBusinessHours ? "YES" : "NO"));
+        }
+
+        return result.toString();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -206,9 +236,11 @@ public class TimeZoneMasteryChallenge {
      * @return The adjusted ZonedDateTime
      */
     public ZonedDateTime demonstrateDstGap() {
-        // placeholder - original solution removed
-        return null;
- }
+        return ZonedDateTime.of(
+                LocalDateTime.of(2023, 3, 12, 2, 30),
+                ZoneId.of("America/New_York")
+        );
+    }
 
     /**
      * TASK 3.2: Handle DST Overlap
@@ -228,8 +260,19 @@ public class TimeZoneMasteryChallenge {
      * @return Description of both occurrences
      */
     public String demonstrateDstOverlap() {
-        // placeholder - original solution removed
-        return null;
+        LocalDateTime overlapTime = LocalDateTime.of(2023, 11, 5, 1, 30);
+        ZoneId zone = ZoneId.of("America/New_York");
+        ZonedDateTime ambiguous = ZonedDateTime.of(overlapTime, zone);
+
+        ZonedDateTime first = ambiguous.withEarlierOffsetAtOverlap();
+        ZonedDateTime second = ambiguous.withLaterOffsetAtOverlap();
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z (XXX)");
+        return String.format(
+            "First occurrence: %s, Second occurrence: %s",
+            first.format(fmt),
+            second.format(fmt)
+        );
     }
 
     /**
@@ -247,8 +290,25 @@ public class TimeZoneMasteryChallenge {
      * @return Description of UTC times before and after DST
      */
     public String analyzeCourseDuringDst() {
-        // placeholder - original solution removed
-        return null;
+        ZonedDateTime beforeDst = ZonedDateTime.of(
+                LocalDateTime.of(2023, 3, 5, 10, 0),
+                ZoneId.of("America/New_York")
+        );
+        ZonedDateTime afterDst = ZonedDateTime.of(
+                LocalDateTime.of(2023, 3, 19, 10, 0),
+                ZoneId.of("America/New_York")
+        );
+
+        ZonedDateTime beforeDstUtc = beforeDst.withZoneSameInstant(ZoneOffset.UTC);
+        ZonedDateTime afterDstUtc = afterDst.withZoneSameInstant(ZoneOffset.UTC);
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm 'UTC'");
+        String beforeStr = beforeDstUtc.format(fmt);
+        String afterStr = afterDstUtc.format(fmt);
+
+        long hoursDifference = Duration.between(beforeDstUtc, afterDstUtc).toHours();
+
+        return String.format("Before DST: %s, After DST: %s (%d hour difference)", beforeStr, afterStr, hoursDifference);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -271,8 +331,13 @@ public class TimeZoneMasteryChallenge {
      * @return List of formatted enrollment timestamps
      */
     public List<String> getEnrollmentTimesInZone(String targetZoneId) {
-        // placeholder - original solution removed
-        return null;
+        return enrollments.stream()
+            .map(enr -> {
+                ZonedDateTime zonedDateTime = ZonedDateTime.of(enr.getEnrolledAt(), ZoneId.of(targetZoneId));
+                return "Enrollment ID: %s, Enrollment Date: %s".formatted(enr.getId(), 
+                    zonedDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z")));
+            })
+            .toList();
     }
 
     /**
@@ -291,8 +356,24 @@ public class TimeZoneMasteryChallenge {
      * @return Map of time zone to course count
      */
     public Map<String, Long> groupCoursesByInstructorZone() {
-        // placeholder - original solution removed
-        return null;
+        List<String> shuffled = ZoneId.getAvailableZoneIds().stream().toList();
+        Collections.shuffle(shuffled);
+
+        final var timeZoneSize = 5;
+        List<String> selectedTimeZones = shuffled.stream()
+            .limit(timeZoneSize)
+            .toList();
+
+        
+        return courses.stream()
+                .map(c -> {
+                    int randIndex = (int)(Math.random() * timeZoneSize);
+                    return selectedTimeZones.get(randIndex);
+                })
+                .collect(Collectors.groupingBy(
+                    ctz -> ctz,
+                    Collectors.counting()
+                ));
     }
 
     /**
@@ -309,8 +390,14 @@ public class TimeZoneMasteryChallenge {
      * @return Count of courses with upcoming deadlines
      */
     public long countUpcomingDeadlines(String studentZoneId) {
-        // placeholder - original solution removed
-        return 0;
+        return courses.stream()
+                .filter(c -> {
+                    ZonedDateTime nowInZone = ZonedDateTime.now(ZoneId.of(studentZoneId));
+                    ZonedDateTime deadlineInZone = nowInZone.plusHours((long)(Math.random() * 72)); // random deadline within 72 hours
+                    Duration duration = Duration.between(nowInZone, deadlineInZone);
+                    return !duration.isNegative() && duration.toHours() <= 24;
+                })
+                .count();
     }
 
     public static void main(String[] args) {
@@ -357,7 +444,7 @@ public class TimeZoneMasteryChallenge {
         enrollmentTimes.stream().limit(5).forEach(time ->
             System.out.println("  - " + time)
         );
-
+         
         // Show current time in various zones
         System.out.println("\n--- Current Time Around the World ---");
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));

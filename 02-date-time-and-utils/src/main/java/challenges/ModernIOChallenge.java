@@ -78,8 +78,8 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public String readFileContent(Path path) throws IOException {
-        // placeholder - original solution removed
-        return null;
+        String textFromFile = Files.readString(path);
+        return textFromFile;
     }
 
     /**
@@ -99,8 +99,7 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void writeFileContent(Path path, String content) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        Files.writeString(path, content);
     }
 
     /**
@@ -120,8 +119,7 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void appendToFile(Path path, String content) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        Files.writeString(path, content, StandardOpenOption.APPEND);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -145,8 +143,9 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public long countErrorLines(Path path) throws IOException {
-        // placeholder - original solution removed
-        return 0;
+        return Files.lines(path)
+                .filter(line -> line.contains("ERROR"))
+                .count();
     }
 
     /**
@@ -167,7 +166,9 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public List<String> findLinesByPattern(Path path, String pattern) throws IOException {
-        return null;
+        return Files.lines(path)
+                .filter(line -> line.contains(pattern))
+                .toList();
     }
 
     /**
@@ -187,8 +188,7 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public long countTotalLines(Path path) throws IOException {
-        // placeholder - original solution removed
-        return 0;
+        return Files.lines(path).count();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -215,8 +215,25 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void generateCourseReport(Path outputPath) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        var lines = courses.stream()
+                        .map(course -> {
+                            return """
+                                    Course: %s
+                                    Category: %s
+                                    Enrollments: %d
+                                    ---
+                                    """.formatted(course.getTitle(), course.getCategory(), course.getEnrollmentCount());
+                        })
+                        .collect(Collectors.joining("\n"));
+                        
+        String reportTitle = """
+                ═══ EDUMASTER COURSE REPORT ═══
+                Total Courses: %d
+
+                """.formatted(courses.size());
+
+        Files.writeString(outputPath, reportTitle);
+        Files.writeString(outputPath, lines, StandardOpenOption.APPEND);
     }
 
     /**
@@ -237,8 +254,11 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void exportCourseTitles(Path outputPath) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        var lines = courses.stream()
+                        .map(Course::getTitle)
+                        .collect(Collectors.joining("\n"));
+                        
+        Files.writeString(outputPath, lines);
     }
 
     /**
@@ -255,8 +275,27 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void logDailyActivity(Path logPath) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        long activeCount = enrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
+                .count();
+
+        long completedCount = enrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.COMPLETED)
+                .count();
+
+        LocalDateTime now = LocalDateTime.now();
+        long newTodayCount = enrollments.stream()
+                .filter(e -> e.getEnrolledAt() != null &&
+                           e.getEnrolledAt().toLocalDate().equals(now.toLocalDate()))
+                .count();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String timestamp = now.format(formatter);
+
+        String logEntry = String.format("[%s] ACTIVITY - Active: %d, Completed: %d, New Today: %d%n",
+                timestamp, activeCount, completedCount, newTodayCount);
+
+        Files.writeString(logPath, logEntry, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -278,8 +317,26 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be written
      */
     public void generateSampleLogFile(Path logPath) throws IOException {
-        // placeholder - original solution removed
-        // no-op
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+
+        String logs = """
+                [%s] INFO - System started
+                [%s] INFO - Loading configuration
+                [%s] ERROR - Failed to connect to database
+                [%s] WARNING - Retrying connection
+                [%s] INFO - Connection established
+                [%s] ERROR - Timeout occurred
+                """.formatted(
+                now.format(formatter),
+                now.plusMinutes(5).format(formatter),
+                now.plusMinutes(10).format(formatter),
+                now.plusMinutes(11).format(formatter),
+                now.plusMinutes(12).format(formatter),
+                now.plusMinutes(20).format(formatter)
+        );
+
+        Files.writeString(logPath, logs);
     }
 
     /**
@@ -303,8 +360,13 @@ public class ModernIOChallenge {
      * @throws IOException if file cannot be read
      */
     public String parseConfiguration(Path configPath) throws IOException {
-        // placeholder - original solution removed
-        return null;
+        var config = Files.lines(configPath)
+                .filter(line -> !line.isBlank() && !line.trim().startsWith("#"))
+                .map(line -> line.split("=", 2))
+                .filter(parts -> parts.length == 2)
+                .collect(Collectors.toMap(parts -> parts[0].trim(), parts -> parts[1].trim()));
+
+        return config.toString();
     }
 
     public static void main(String[] args) {

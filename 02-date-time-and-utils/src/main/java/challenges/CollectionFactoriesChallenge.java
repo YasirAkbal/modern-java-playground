@@ -56,7 +56,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable list of programming languages
      */
     public List<String> getSupportedLanguages() {
-        return null;
+        return List.of("Java", "Python", "JavaScript", "Go");
     }
 
     /**
@@ -73,7 +73,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable set of enrollment statuses
      */
     public Set<String> getValidEnrollmentStatuses() {
-        return null;
+        return Set.of("ACTIVE", "COMPLETED", "CANCELLED", "EXPIRED");
     }
 
     /**
@@ -90,7 +90,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable configuration map
      */
     public Map<String, String> getSystemConfig() {
-        return null;
+        return Map.of("max_retries", "3", "timeout_ms", "5000");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -112,7 +112,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable copy of the input list
      */
     public List<String> createDefensiveCopy(List<String> input) {
-        return null;
+        return List.copyOf(input);
     }
 
     /**
@@ -131,8 +131,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable list of course tags
      */
     public List<String> getCourseTagsSafely(Course course) {
-        // TODO: Return immutable copy of course tags
-        return null;
+        return List.copyOf(course.getTags());
     }
 
     /**
@@ -151,8 +150,7 @@ public class CollectionFactoriesChallenge {
      * @return Immutable set (no duplicates)
      */
     public Set<String> createImmutableSet(Collection<String> input) {
-        // TODO: Use Set.copyOf()
-        return null;
+        return Set.copyOf(input);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -173,7 +171,9 @@ public class CollectionFactoriesChallenge {
      * @return Immutable set of all unique tags
      */
     public Set<String> getAllUniqueTags() {
-        return null;
+        return courses.stream()
+            .flatMap(course -> course.getTags().stream())
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -190,8 +190,9 @@ public class CollectionFactoriesChallenge {
      * @return Immutable list of category display names
      */
     public List<String> getCategoryDisplayNames() {
-        // TODO: Extract unique category display names from all courses
-        return null;
+        return Arrays.stream(Category.values())
+                .map(Category::getDisplayName)
+                .collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -208,8 +209,14 @@ public class CollectionFactoriesChallenge {
      * @return Immutable map of difficulty level to course count
      */
     public Map<DifficultyLevel, Long> getDifficultyDistribution() {
-        // TODO: Group courses by difficulty and count
-        return null;
+        return courses.stream()
+            .collect(Collectors.collectingAndThen(
+                Collectors.groupingBy(
+                    Course::getDifficulty,
+                    Collectors.counting()
+                ),
+                Collections::unmodifiableMap
+            ));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -232,7 +239,20 @@ public class CollectionFactoriesChallenge {
      * @return Immutable map of feature flags
      */
     public Map<String, Boolean> getFeatureFlags() {
-        return null;
+        return Map.ofEntries(
+            Map.entry("enable_ai_tutor", true),
+            Map.entry("enable_gamification", false),
+            Map.entry("enable_offline_mode", true),
+            Map.entry("enable_dark_mode", true),
+            Map.entry("enable_push_notifications", false),
+            Map.entry("enable_course_recommendations", true),
+            Map.entry("enable_live_sessions", false),
+            Map.entry("enable_certifications", true),
+            Map.entry("enable_discussion_forums", true),
+            Map.entry("enable_multi_language_support", false),
+            Map.entry("enable_advanced_analytics", true),
+            Map.entry("enable_instructor_tools", true)
+        );
     }
 
     /**
@@ -250,8 +270,13 @@ public class CollectionFactoriesChallenge {
      * @return Immutable map of course ID to instructor name
      */
     public Map<String, String> getCourseInstructorMap() {
-        // TODO: Create map of course ID to instructor full name
-        return null;
+        var map = courses.stream()
+            .collect(Collectors.toMap(
+                Course::getId,
+                c -> c.getInstructor().getFullName()
+            ));
+                    
+        return Map.copyOf(map);
     }
 
     /**
@@ -269,7 +294,14 @@ public class CollectionFactoriesChallenge {
      * @return true if UnsupportedOperationException is thrown, false otherwise
      */
     public boolean verifyImmutability() {
-        return false;
+        List<String> immutableList = List.of("immutable1", "immutable2");
+        try {
+            immutableList.add("shouldFail");
+        } catch (UnsupportedOperationException e) {
+            return true;
+        }
+        
+        return false;   
     }
 
     public static void main(String[] args) {

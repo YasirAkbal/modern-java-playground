@@ -6,7 +6,9 @@ import model.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.TemporalQuery;
 import java.util.List;
 import java.util.Locale;
 
@@ -58,7 +60,7 @@ public class DateTimeBasicsChallenge {
      * @return LocalDate representing April 23, 2025
      */
     public LocalDate createSpecificDate() {
-        return null;
+        return LocalDate.of(2025, 4, 23);
     }
 
     /**
@@ -75,7 +77,7 @@ public class DateTimeBasicsChallenge {
      * @return Parsed LocalDate
      */
     public LocalDate parseIsoDate(String dateStr) {
-        return null;
+        return LocalDate.parse(dateStr);
     }
 
     /**
@@ -93,7 +95,7 @@ public class DateTimeBasicsChallenge {
      * @return Formatted date string
      */
     public String formatFriendlyDate(LocalDate date) {
-        return null;
+        return date.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -113,7 +115,7 @@ public class DateTimeBasicsChallenge {
      * @return End time of the lesson
      */
     public LocalTime calculateEndTime() {
-        return null;
+        return LocalTime.of(9, 30).plusMinutes(45);
     }
 
     /**
@@ -133,8 +135,8 @@ public class DateTimeBasicsChallenge {
      * @return Number of days between the dates
      */
     public long calculateDaysBetween(LocalDate start, LocalDate end) {
-        // TODO: Implement using ChronoUnit.DAYS.between()
-        return 0;
+        // return ChronoUnit.DAYS.between(start, end);
+        return Period.between(start, end).getDays();
     }
 
     /**
@@ -154,8 +156,7 @@ public class DateTimeBasicsChallenge {
      * @return Duration in seconds
      */
     public long calculateDurationInSeconds(LocalTime start, LocalTime end) {
-        // TODO: Implement using Duration.between()
-        return 0;
+        return Duration.between(start, end).getSeconds();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -178,8 +179,7 @@ public class DateTimeBasicsChallenge {
      * @return true if weekend, false otherwise
      */
     public boolean isWeekend(LocalDate date) {
-        // TODO: Implement using getDayOfWeek()
-        return false;
+        return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
     /**
@@ -198,8 +198,8 @@ public class DateTimeBasicsChallenge {
      * @return Date of the next Friday
      */
     public LocalDate findNextFriday(LocalDate date) {
-        // TODO: Implement using TemporalAdjusters.next()
-        return null;
+        TemporalAdjuster nextFriday = TemporalAdjusters.next(DayOfWeek.FRIDAY);
+        return date.with(nextFriday);
     }
 
     /**
@@ -217,8 +217,8 @@ public class DateTimeBasicsChallenge {
      * @return Course end date
      */
     public LocalDate calculateCourseEndDate(LocalDate startDate, int durationWeeks) {
-        // Add weeks then adjust to Friday if needed
-        return null;}
+        return startDate.plusWeeks(durationWeeks).with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // PART 4: Working with Real Course Data
@@ -234,7 +234,12 @@ public class DateTimeBasicsChallenge {
      * @return List of courses created in the same month
      */
     public List<Course> getCoursesCreatedThisMonth(LocalDate currentDate) {
-        return null;
+        return courses.stream()
+                .filter(c -> {
+                    LocalDate createdDate = c.getCreatedAt().toLocalDate();
+                    return createdDate.getMonth() == currentDate.getMonth()
+                            && createdDate.getYear() == currentDate.getYear();
+                }).toList();
     }
 
     /**
@@ -249,9 +254,8 @@ public class DateTimeBasicsChallenge {
      * @return Formatted enrollment time string
      */
     public String formatEnrollmentTimestamp(Enrollment enrollment) {
-        // TODO: Implement custom formatting for LocalDateTime
-        // enrollment.getEnrolledAt() returns LocalDateTime
-        return null;
+        return enrollment.getEnrolledAt()
+                .format(DateTimeFormatter.ofPattern("dd MMMM yyyy 'at' HH:mm", Locale.ENGLISH)).toString();
     }
 
     public static void main(String[] args) {

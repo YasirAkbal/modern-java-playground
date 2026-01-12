@@ -6,6 +6,7 @@ import model.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
@@ -64,7 +65,8 @@ public class DateTimeCalculationChallenge {
      * @return true if enrollment expires within 5 days
      */
     public boolean isExpiringSoon(LocalDate today, Enrollment enrollment) {
-        return false;
+        // there is no expiration date in Enrollment model, assuming completedAt as expiration date
+        return Period.between(today, enrollment.getCompletedAt().toLocalDate()).getDays() <= 5;
     }
 
     /**
@@ -84,8 +86,7 @@ public class DateTimeCalculationChallenge {
      * @return Number of days until deadline (negative if passed)
      */
     public long calculateDaysUntilDeadline(LocalDate today, LocalDate deadline) {
-        // TODO: Calculate days between today and deadline
-        return 0;
+        return ChronoUnit.DAYS.between(today, deadline);
     }
 
     /**
@@ -104,8 +105,9 @@ public class DateTimeCalculationChallenge {
      * @return List of enrollments expiring within 7 days
      */
     public List<Enrollment> findExpiringEnrollments(LocalDate today) {
-        // TODO: Filter enrollments expiring within 7 days
-        return null;
+        return enrollments.stream()
+                .filter(e -> isExpiringSoon(today, e))
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -128,8 +130,7 @@ public class DateTimeCalculationChallenge {
      * @return First Monday of next month
      */
     public LocalDate getNextCourseStartDate(LocalDate currentDate) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return currentDate.plusMonths(1).with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY));
     }
 
     /**
@@ -149,8 +150,7 @@ public class DateTimeCalculationChallenge {
      * @return Course end date (Friday)
      */
     public LocalDate calculateCourseEndDate(LocalDate startDate, int durationWeeks) {
-        // TODO: Add weeks and adjust to Friday
-        return null;
+        return startDate.plusWeeks(durationWeeks).with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY));
     }
 
     /**
@@ -169,8 +169,7 @@ public class DateTimeCalculationChallenge {
      * @return Date of next Thursday
      */
     public LocalDate findNextOfficeHours(LocalDate today) {
-        // TODO: Find next Thursday
-        return null;
+        return today.with(TemporalAdjusters.nextOrSame(DayOfWeek.THURSDAY));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -193,8 +192,9 @@ public class DateTimeCalculationChallenge {
      * @return Meeting time in New York timezone
      */
     public ZonedDateTime convertIstanbulToNewYork(LocalDate meetingDate) {
-        // placeholder - original solution removed
-        return null;
+        return ZonedDateTime.of(meetingDate, LocalTime.of(20, 0),
+                ZoneId.of("Europe/Istanbul"))
+                .withZoneSameInstant(ZoneId.of("America/New_York"));
     }
 
     /**
@@ -214,8 +214,9 @@ public class DateTimeCalculationChallenge {
      * @return true if time is between 08:00-22:00 in target zone
      */
     public boolean isMeetingTimeReasonable(ZonedDateTime meetingTime, String targetZoneId) {
-        // placeholder - original solution removed
-        return false;
+        var targetTime = meetingTime.withZoneSameInstant(ZoneId.of(targetZoneId));
+        int hour = targetTime.getHour();
+        return hour >= 8 && hour <= 22;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -238,8 +239,10 @@ public class DateTimeCalculationChallenge {
      * @return Total duration of all lessons
      */
     public Duration calculateTotalCourseDuration(Course course) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return course.getLessons()
+                .stream()
+                .map(Lesson::getDuration)
+                .reduce(Duration.ZERO, Duration::plus);
     }
 
     /**
@@ -257,8 +260,9 @@ public class DateTimeCalculationChallenge {
      * @return Formatted string
      */
     public String formatDuration(Duration duration) {
-        // placeholder - original solution removed
-        return null;
+        return String.format("%d hours %d minutes",
+                duration.toHours(),
+                duration.toMinutesPart());
     }
 
     /**
@@ -277,8 +281,14 @@ public class DateTimeCalculationChallenge {
      * @return Average lesson duration
      */
     public Duration calculateAverageLessonDuration(Course course) {
-        // placeholder - original solution removed
-        return null;
+        List<Lesson> lessons = course.getLessons();
+        if (lessons.isEmpty()) 
+            return Duration.ZERO;
+        
+        return lessons.stream()
+                    .map(Lesson::getDuration)
+                    .reduce(Duration.ZERO, Duration::plus)
+                    .dividedBy(lessons.size());
     }
 
     public static void main(String[] args) {
