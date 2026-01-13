@@ -115,7 +115,10 @@ public class SealedClassesChallenge {
      * </pre>
      */
     public String formatPaymentResult(PaymentResult result) {
-        return null;
+        return switch (result) {
+            case Success s -> "Payment successful: %s ($%.2f)".formatted(s.transactionId(), s.amount());
+            case Failure f -> "Payment failed: %s, at %s".formatted(f.getReason(), f.getFailedAt());
+        };
     }
 
     /**
@@ -126,7 +129,15 @@ public class SealedClassesChallenge {
      * @return List of payment results
      */
     public List<PaymentResult> getPaymentResults() {
-        return null;
+        return payments.stream()
+            .map(p -> {
+                return switch(p.getStatus()) {
+                    case COMPLETED -> new Success(p.getTransactionId(), p.getFinalAmount());
+                    case FAILED -> new Failure(p.getTransactionId(), p.getFailureReason());
+                    default -> throw new IllegalArgumentException("Unsupported payment status: " + p.getStatus()); //for simplicity
+                };
+            })
+            .toList();
     }
 
     /**
@@ -137,8 +148,9 @@ public class SealedClassesChallenge {
      * @return Count of successful payments
      */
     public long countSuccessfulPayments() {
-        // TODO: Use getPaymentResults() and filter/count Success instances
-        return 0;
+        return getPaymentResults().stream()
+                .filter(result -> result instanceof Success)
+                .count();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -258,7 +270,12 @@ public class SealedClassesChallenge {
      * </pre>
      */
     public String getEnrollmentStatus(EnrollmentState state) {
-        return null;
+        return switch(state) {
+            case Active a -> "In Progress: %d%% complete".formatted(a.getProgressPercentage());
+            case Completed c -> "Completed: Score %.2f, Certified: %s".formatted(c.getFinalScore(), c.isCertified() ? "Yes" : "No");
+            case Dropped d -> "Dropped: Reason - %s".formatted(d.getReason());
+            case Expired e -> "Expired: Expiry Date - %s".formatted(e.getExpiryDate());
+        };
     }
 
     /**
@@ -269,9 +286,16 @@ public class SealedClassesChallenge {
      * @return List of enrollment states
      */
     public List<EnrollmentState> getEnrollmentStates() {
-        return null;
-    }
-
+        return enrollments.stream()
+            .map(enr -> {
+                return switch(enr.getStatus()) {
+                    case ACTIVE -> new Active(enr.getId(), enr.getProgressPercentage());
+                    case COMPLETED -> new Completed(enr.getId(), enr.getScore());
+                    default -> new Expired(enr.getId(), enr.getCompletedAt());
+                };
+            })
+            .toList();
+        }
     /**
      * TASK 2.3: Filter Active Enrollments
      *
@@ -280,8 +304,10 @@ public class SealedClassesChallenge {
      * @return List of active enrollments with good progress
      */
     public List<Active> getActiveEnrollmentsWithProgress() {
-        // TODO: Filter getEnrollmentStates() for Active instances with progress >= 50%
-        return null;
+        return enrollments.stream()
+                .filter(enr -> enr.getStatus() == EnrollmentStatus.ACTIVE && enr.getProgressPercentage() >= 50)
+                .map(enr -> new Active(enr.getId(), enr.getProgressPercentage()))
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -317,7 +343,11 @@ public class SealedClassesChallenge {
      * @return Description string
      */
     public String describeAccess(AccessLevel access) {
-        return null;
+        return switch(access) {
+            case Free f -> "Free access to lessons: %s".formatted(String.join(", ", f.allowedLessonIds()));
+            case Premium p -> "Premium access until %s".formatted(p.expiresAt());
+            case Enterprise e -> "Enterprise access for %d users, Org: %s".formatted(e.maxUsers(), e.organizationId());
+        };
     }
 
     /**
@@ -328,11 +358,23 @@ public class SealedClassesChallenge {
      * @return Map of student IDs to access levels
      */
     public Map<String, AccessLevel> getStudentAccessLevels() {
-        // TODO: Create access levels:
-        // - BEGINNER students get Free access (first 2 lesson IDs from a course)
-        // - INTERMEDIATE/ADVANCED get Premium (expires in 1 year)
-        // - Students with 5+ enrollments get Enterprise access
-        return null;
+        Map<String, Long> enrollmentCounts = enrollments.stream()
+                .collect(Collectors.groupingBy(Enrollment::getStudentId, Collectors.counting()));
+
+        return students.stream()
+                .collect(Collectors.toMap(
+                    Student::getId,
+                    student -> {
+                        long enrollmentCount = enrollmentCounts.getOrDefault(student.getId(), 0L);
+                        if (enrollmentCount >= 5) {
+                            return new Enterprise(100, "ORG-" + student.getId());
+                        }
+                        return switch(student.getLevel()) {
+                            case BEGINNER -> new Free(List.of("L1", "L2"));
+                            case INTERMEDIATE, ADVANCED -> new Premium(LocalDateTime.now().plusYears(1));
+                        };
+                    }
+                ));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -395,7 +437,12 @@ public class SealedClassesChallenge {
      * </pre>
      */
     public String formatNotification(NotificationEvent event) {
-        return null;
+        return switch(event) {
+            case EnrollmentNotification e -> "Welcome to %s!".formatted(e.courseTitle());
+            case PaymentNotification p -> "Payment confirmed: $%.2f (Transaction: %s)".formatted(p.amount(), p.transactionId());
+            case CompletionNotification c -> "Congratulations! You completed %s with score %.2f%s".formatted(
+                c.courseTitle(), c.score(), c.certified() ? " and earned a certificate!" : "");
+        };
     }
 
     /**
@@ -406,7 +453,36 @@ public class SealedClassesChallenge {
      * @return List of notification events
      */
     public List<NotificationEvent> generateNotifications() {
-        return null;
+        List<NotificationEvent> notifications = new ArrayList<>();
+
+        enrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
+                .forEach(e -> notifications.add(new EnrollmentNotification(
+                    e.getStudentId(),
+                    e.getCourse().getTitle(),
+                    e.getEnrolledAt()
+                )));
+
+        payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
+                .forEach(p -> notifications.add(new PaymentNotification(
+                    p.getStudentId(),
+                    p.getFinalAmount(),
+                    p.getTransactionId(),
+                    p.getProcessedAt()
+                )));
+
+        enrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.COMPLETED)
+                .forEach(e -> notifications.add(new CompletionNotification(
+                    e.getStudentId(),
+                    e.getCourse().getTitle(),
+                    e.getScore(),
+                    e.getScore() >= 70.0,
+                    e.getCompletedAt()
+                )));
+
+        return notifications;
     }
 
     /**
@@ -417,8 +493,11 @@ public class SealedClassesChallenge {
      * @return Map of notification types to counts
      */
     public Map<String, Long> countNotificationsByType() {
-        // TODO: Use generateNotifications() and group by class simple name
-        return null;
+        return generateNotifications().stream()
+                .collect(Collectors.groupingBy(
+                    n -> n.getClass().getSimpleName(),
+                    Collectors.counting()
+                ));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -444,7 +523,19 @@ public class SealedClassesChallenge {
      * </pre>
      */
     public BigDecimal calculateRefund(PaymentResult paymentResult, EnrollmentState enrollmentState) {
-        return null;
+        if (paymentResult instanceof Failure) {
+            return BigDecimal.ZERO;
+        }
+
+        Success success = (Success) paymentResult;
+
+        return switch(enrollmentState) {
+            case Active a when a.getProgressPercentage() < 10 -> success.amount().multiply(BigDecimal.valueOf(0.9));
+            case Active a when a.getProgressPercentage() < 25 -> success.amount().multiply(BigDecimal.valueOf(0.5));
+            case Dropped d -> success.amount().multiply(BigDecimal.valueOf(0.8));
+            case Expired e -> success.amount().multiply(BigDecimal.valueOf(0.3));
+            default -> BigDecimal.ZERO;
+        };
     }
 
     /**
@@ -455,8 +546,14 @@ public class SealedClassesChallenge {
      * @return List of enrollment IDs eligible for refund
      */
     public List<String> getRefundEligibleEnrollments() {
-        // TODO: Filter getEnrollmentStates() for refund-eligible states
-        return null;
+        return getEnrollmentStates().stream()
+                .filter(state -> switch(state) {
+                    case Active a when a.getProgressPercentage() < 10 -> true;
+                    case Dropped d -> true;
+                    default -> false;
+                })
+                .map(EnrollmentState::getEnrollmentId)
+                .toList();
     }
 
     public static void main(String[] args) {
