@@ -3,7 +3,9 @@ package challenges;
 import data.SampleDataGenerator;
 import model.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,8 +64,7 @@ public class StringEnhancementsChallenge {
      * @return true if blank, false otherwise
      */
     public boolean isInputEmpty(String input) {
-        // Placeholder: original implementation removed for challenge reset
-        return false;
+        return input == null || input.isBlank();
     }
 
     /**
@@ -75,8 +76,9 @@ public class StringEnhancementsChallenge {
      * @return List of students with non-blank names
      */
     public List<Student> getStudentsWithValidNames() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return students.stream()
+                    .filter(s -> !s.getFullName().isBlank())
+                    .toList();
     }
 
     /**
@@ -88,8 +90,8 @@ public class StringEnhancementsChallenge {
      * @return true if any course has blank description
      */
     public boolean hasCoursesWithBlankDescriptions() {
-        // Placeholder: original implementation removed for challenge reset
-        return false;
+        return courses.stream()
+                    .anyMatch(c -> c.getTitle().isBlank());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -111,8 +113,7 @@ public class StringEnhancementsChallenge {
      * @return Cleaned string
      */
     public String cleanup(String input) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return input.strip();
     }
 
     /**
@@ -128,8 +129,7 @@ public class StringEnhancementsChallenge {
      * @return String with leading whitespace removed
      */
     public String stripLeading(String input) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return input.stripLeading();
     }
 
     /**
@@ -141,8 +141,9 @@ public class StringEnhancementsChallenge {
      * @return List of cleaned student names
      */
     public List<String> getCleanedStudentNames() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return students.stream()
+                .map(s -> s.getFirstName().strip() + s.getLastName().strip())
+                .toList();
     }
 
     /**
@@ -154,8 +155,9 @@ public class StringEnhancementsChallenge {
      * @return List of cleaned descriptions
      */
     public List<String> getCleanedDescriptions() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return courses.stream()
+                .map(c -> c.getDescription().strip())
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -180,8 +182,7 @@ public class StringEnhancementsChallenge {
      * @return Stream of individual lines
      */
     public Stream<String> streamLines(String multiline) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return multiline.lines();
     }
 
     /**
@@ -193,8 +194,7 @@ public class StringEnhancementsChallenge {
      * @return Number of lines
      */
     public long countLines(String multiline) {
-        // Placeholder: original implementation removed for challenge reset
-        return 0;
+        return multiline.lines().count();
     }
 
     /**
@@ -212,8 +212,9 @@ public class StringEnhancementsChallenge {
      * @return List of lines containing the keyword
      */
     public List<String> filterLinesByKeyword(String multiline, String keyword) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return multiline.lines()
+                .filter(line -> line.toLowerCase().contains(keyword.toLowerCase()))
+                .toList();
     }
 
     /**
@@ -225,8 +226,9 @@ public class StringEnhancementsChallenge {
      * @return List of non-blank lines from first course description
      */
     public List<String> getCourseDescriptionLines() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return courses.getFirst().getDescription().lines()
+                    .filter(Predicate.not(String::isBlank))
+                    .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -247,8 +249,7 @@ public class StringEnhancementsChallenge {
      * @return Repeated string
      */
     public String repeatString(String str, int times) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return str.repeat(times);
     }
 
     /**
@@ -265,8 +266,7 @@ public class StringEnhancementsChallenge {
      * @return Separator string
      */
     public String createSeparator(char character, int length) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return String.valueOf(character).repeat(length);
     }
 
     /**
@@ -285,8 +285,10 @@ public class StringEnhancementsChallenge {
      * @return Bordered text
      */
     public String createBorder(String text, char borderChar) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        int borderLength = text.length() + 2;
+        String border = String.valueOf(borderChar).repeat(borderLength);
+
+        return border + (borderChar + text + borderChar) + border;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -307,8 +309,7 @@ public class StringEnhancementsChallenge {
      * @return Indented code
      */
     public String formatCode(String code) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return code.indent(5);
     }
 
     /**
@@ -328,8 +329,7 @@ public class StringEnhancementsChallenge {
      * @return Indented code block
      */
     public String indentBlock(String code, int spaces) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return code.indent(spaces);
     }
 
     /**
@@ -344,8 +344,8 @@ public class StringEnhancementsChallenge {
      * @return Formatted description
      */
     public String formatCourseDescription(Course course) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return "Title: " + course.getTitle().strip()
+                .indent(2);
     }
 
     /**
@@ -358,8 +358,7 @@ public class StringEnhancementsChallenge {
      * @return Text with reduced indentation
      */
     public String removeIndentation(String indentedText, int spaces) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return indentedText.indent(spaces);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -379,8 +378,7 @@ public class StringEnhancementsChallenge {
      * @return Transformed string (uppercase + trimmed)
      */
     public String transformToUpperCase(String input) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return input.transform(String::toUpperCase);
     }
 
     /**
@@ -397,8 +395,9 @@ public class StringEnhancementsChallenge {
      * @return Transformed name
      */
     public String transformStudentName(String name) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return name.transform(String::strip)
+                .transform(String::toUpperCase)
+                .transform(n -> n.replace(" ", "_"));
     }
 
     /**
@@ -413,8 +412,10 @@ public class StringEnhancementsChallenge {
      * @return Transformed text
      */
     public String transformToTitleCase(String text) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return Arrays.stream(text.trim().split("\\s+"))
+            .map(word -> word.substring(0, 1).toUpperCase() + 
+                        word.substring(1).toLowerCase())
+            .collect(Collectors.joining(" "));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -439,8 +440,19 @@ public class StringEnhancementsChallenge {
      * @return Formatted report
      */
     public String generateStudentReport(Student student) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        StringBuilder report = new StringBuilder();
+        String separator = "=".repeat(40) + "\n";
+        final int indentSpaces = 2;
+
+        report.append(separator);
+        report.append("Student Report\n");
+        report.append(separator);
+        report.append("Name: ".indent(indentSpaces)).append(student.getFullName().strip()).append("\n");
+        report.append("Email: ".indent(indentSpaces)).append(student.getEmail().strip()).append("\n");
+        report.append("Level: ".indent(indentSpaces)).append(student.getLevel().name()).append("\n");
+        report.append(separator);
+
+        return report.toString();
     }
 
     /**
@@ -458,8 +470,19 @@ public class StringEnhancementsChallenge {
      * @return Formatted course listing
      */
     public String formatCourseListing() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        StringBuilder listing = new StringBuilder();
+        String title = "Course Catalog\n";
+        String separator = "=".repeat(20) + "\n";
+
+        listing.append(title);
+        listing.append(separator);
+
+        for (int i = 0; i < courses.size(); i++) {
+            String courseLine = String.format("%d. %s", i + 1, courses.get(i).getTitle().strip());
+            listing.append(courseLine.indent(2));
+        }
+
+        return listing.toString();
     }
 
     /**
@@ -476,8 +499,17 @@ public class StringEnhancementsChallenge {
      * @return Processed input or error message
      */
     public String processUserInput(String input, int minLength) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        if (input == null || input.isBlank()) {
+            return "Error: Input cannot be blank";
+        }
+
+        String processed = input.strip();
+
+        if (processed.length() < minLength) {
+            return "Error: Input must be at least " + minLength + " characters";
+        }
+
+        return processed.substring(0, 1).toUpperCase() + processed.substring(1);
     }
 
     /**
@@ -489,8 +521,23 @@ public class StringEnhancementsChallenge {
      * @return Formatted bio
      */
     public String generateInstructorBio(Instructor instructor) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        StringBuilder bio = new StringBuilder();
+        String separator = "-".repeat(40) + "\n";
+
+        bio.append("Instructor Profile\n");
+        bio.append(separator);
+        bio.append("Name: ".indent(2)).append(instructor.getFullName().strip()).append("\n");
+        bio.append("Specialization: ".indent(2)).append(instructor.getSpecialization().strip()).append("\n");
+        bio.append("Rating: ".indent(2)).append(String.format("%.1f", instructor.getRating())).append("\n");
+
+        if (instructor.getBio() != null && !instructor.getBio().isBlank()) {
+            bio.append("\nBio:\n");
+            bio.append(instructor.getBio().strip().indent(2));
+        }
+
+        bio.append(separator);
+
+        return bio.toString();
     }
 
     /**
@@ -507,8 +554,14 @@ public class StringEnhancementsChallenge {
      * @return Processed description
      */
     public String processMultilineDescription(String description) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        final int[] lineNumber = {1};
+
+        return description.lines()
+                .filter(Predicate.not(String::isBlank))
+                .map(String::strip)
+                .map(line -> lineNumber[0]++ + ". " + line)
+                .collect(Collectors.joining("\n"))
+                .indent(2);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
