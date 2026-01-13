@@ -63,8 +63,7 @@ public class SecurityBasicsChallenge {
      * @return Base64-encoded string
      */
     public String encodeToBase64(String input) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return Base64.getEncoder().encodeToString(input.getBytes());
     }
 
     /**
@@ -81,8 +80,7 @@ public class SecurityBasicsChallenge {
      * @return Decoded plain text string
      */
     public String decodeFromBase64(String encoded) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
     }
 
     /**
@@ -100,8 +98,8 @@ public class SecurityBasicsChallenge {
      * @return Base64-encoded payment token
      */
     public String generatePaymentToken(Payment payment) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        String formattedString = "PAY-{%s}-{%s}".formatted(payment.getId(), payment.getProcessedAt().toString());
+        return Base64.getEncoder().encodeToString(formattedString.getBytes());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -122,8 +120,7 @@ public class SecurityBasicsChallenge {
      * @return Lowercase hexadecimal string
      */
     public String toHexString(byte[] data) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return HexFormat.of().formatHex(data);
     }
 
     /**
@@ -140,8 +137,7 @@ public class SecurityBasicsChallenge {
      * @return Parsed byte array
      */
     public byte[] fromHexString(String hex) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return HexFormat.of().parseHex(hex);
     }
 
     /**
@@ -161,8 +157,7 @@ public class SecurityBasicsChallenge {
      * @return Uppercase hex string with colon delimiters
      */
     public String toFormattedHex(byte[] data) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return HexFormat.ofDelimiter(":").withUpperCase().formatHex(data);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -185,8 +180,10 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public String hashPassword(String password) throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+
+        return toHexString(encodedhash);
     }
 
     /**
@@ -209,8 +206,11 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-512 is not available
      */
     public String generateTransactionHash(Payment payment) throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        String text = payment.getId() + payment.getStudentId() + payment.getCourseId() + payment.getAmount();
+        MessageDigest digest = MessageDigest.getInstance("SHA-512");    
+        byte[] encodedhash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+        
+        return toHexString(encodedhash);
     }
 
     /**
@@ -229,8 +229,9 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public boolean verifyPassword(String password, String storedHash) throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return false;
+        String calculatedHash = hashPassword(password);
+
+        return calculatedHash.equals(storedHash);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -252,8 +253,10 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public String anonymizeEmail(Student student) throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] encodedhash = digest.digest(student.getEmail().getBytes(StandardCharsets.UTF_8));
+
+        return toHexString(encodedhash);
     }
 
     /**
@@ -272,8 +275,8 @@ public class SecurityBasicsChallenge {
      * @return Masked card number showing only last 4 digits
      */
     public String maskCreditCard(String cardNumber) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        String maskedLeft = cardNumber.substring(0, 15).replaceAll("\\d", "*");
+        return maskedLeft + cardNumber.substring(15);
     }
 
     /**
@@ -289,8 +292,16 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public List<String> generateAnonymizedReport() throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return students.stream()
+                .map(student -> {
+                    try {
+                        String emailHash = anonymizeEmail(student);
+                        return "Student ID: %s, Email Hash: %s".formatted(student.getId(), emailHash);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -315,8 +326,10 @@ public class SecurityBasicsChallenge {
      * @return Secure random token as Base64 string
      */
     public String generateSecureToken() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     /**
@@ -331,8 +344,10 @@ public class SecurityBasicsChallenge {
      * @return 16-byte salt as hexadecimal string
      */
     public String generateSalt() {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] salt = new byte[16];
+        secureRandom.nextBytes(salt);
+        return toHexString(salt);
     }
 
     /**
@@ -353,8 +368,11 @@ public class SecurityBasicsChallenge {
      * @return Unique payment reference code
      */
     public String generatePaymentReference(Payment payment) {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] randomBytes = new byte[4];
+        secureRandom.nextBytes(randomBytes);
+        String randomHex = toHexString(randomBytes).toUpperCase();
+        return "REF-%s-%s".formatted(randomHex, payment.getId());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -375,8 +393,18 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public List<String> hashAllTransactionIds() throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        return payments.stream()
+                .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
+                .map(payment -> {
+                    try {
+                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                        byte[] hash = digest.digest(payment.getId().getBytes(StandardCharsets.UTF_8));
+                        return toHexString(hash);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
     }
 
     /**
@@ -401,8 +429,15 @@ public class SecurityBasicsChallenge {
      * @return true if password meets all requirements
      */
     public boolean validatePasswordStrength(String password) {
-        // Placeholder: original implementation removed for challenge reset
-        return false;
+        if (password.length() < 8) {
+            return false;
+        }
+
+        boolean hasDigit = password.matches(".*\\d.*");
+        boolean hasUppercase = password.matches(".*[A-Z].*");
+        boolean hasLowercase = password.matches(".*[a-z].*");
+
+        return hasDigit && hasUppercase && hasLowercase;
     }
 
     /**
@@ -421,8 +456,11 @@ public class SecurityBasicsChallenge {
      * @throws NoSuchAlgorithmException if SHA-256 is not available
      */
     public String generateSecureStudentId() throws NoSuchAlgorithmException {
-        // Placeholder: original implementation removed for challenge reset
-        return null;
+        String uuid = UUID.randomUUID().toString();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(uuid.getBytes(StandardCharsets.UTF_8));
+        String hexHash = toHexString(hash);
+        return "STU-" + hexHash.substring(0, 12);
     }
 
     public static void main(String[] args) {
