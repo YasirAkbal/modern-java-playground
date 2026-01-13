@@ -371,7 +371,7 @@ public class SealedClassesChallenge {
                         }
                         return switch(student.getLevel()) {
                             case BEGINNER -> new Free(List.of("L1", "L2"));
-                            case INTERMEDIATE, ADVANCED -> new Premium(LocalDateTime.now().plusYears(1));
+                            case INTERMEDIATE, ADVANCED, EXPERT -> new Premium(LocalDateTime.now().plusYears(1));
                         };
                     }
                 ));

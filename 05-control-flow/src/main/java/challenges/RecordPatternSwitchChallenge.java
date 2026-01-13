@@ -72,7 +72,14 @@ public class RecordPatternSwitchChallenge {
      * @return Description string
      */
     public String analyzeShape(Object shape) {
-        return null;
+        return switch(shape) {
+            case Circle c when c.center.equals(new Point(0, 0)) -> "Origin Circle R=" + c.radius;
+            case Circle c -> "Circle at (%d,%d) R=%d".formatted(c.center.x, c.center.y, c.radius);
+            case Line l -> "Line from (%d,%d) to (%d,%d)".formatted(
+                    l.start.x, l.start.y, l.end.x, l.end.y);
+            case Point p -> "Point at (%d,%d)".formatted(p.x, p.y);
+            default -> "Unknown Shape";
+        };
     }
 
     /**
@@ -89,6 +96,10 @@ public class RecordPatternSwitchChallenge {
      * @return True if line is on X-axis
      */
     public boolean isXAxisLine(Object obj) {
+        if(obj instanceof Line(Point start, Point end)) {
+            return start.y == 0 && end.y == 0;
+        }
+        
         return false;
     }
 
@@ -106,7 +117,8 @@ public class RecordPatternSwitchChallenge {
      * @return True if rectangle is a square
      */
     public boolean isSquare(Object shape) {
-        return false;
+        return shape instanceof Rectangle(Point topLeft, Point bottomRight)
+                && (bottomRight.x - topLeft.x) == (bottomRight.y - topLeft.y);
     }
 
     /**
@@ -127,8 +139,14 @@ public class RecordPatternSwitchChallenge {
      * @return Area value
      */
     public double calculateArea(Object shape) {
-        // TODO: Use record patterns to extract dimensions and calculate
-        return 0.0;
+        return switch(shape) {
+            case Circle(Point _, int radius) -> Math.PI * radius * radius;
+            case Rectangle(Point topLeft, Point bottomRight) ->
+                (bottomRight.x - topLeft.x) * (bottomRight.y - topLeft.y);
+            case Line _ -> 0.0;
+            case Point _ -> 0.0;
+            default -> -1.0;
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -170,7 +188,21 @@ public class RecordPatternSwitchChallenge {
      * @return Classification string
      */
     public String classifyEvent(Object event) {
-        return null;
+        return switch(event) {
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress >= 100 ->
+                "COMPLETED: " + courseName;
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress >= 75 ->
+                "NEAR_COMPLETION: " + courseName;
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress >= 50 ->
+                "HALFWAY: " + courseName;
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress >= 25 ->
+                "IN_PROGRESS: " + courseName;
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress > 0 ->
+                "JUST_STARTED: " + courseName;
+            case EnrollmentEvent(_, _, String courseName, _, int progress) when progress == 0 ->
+                "NOT_STARTED: " + courseName;
+            default -> "UNKNOWN_EVENT";
+        };
     }
 
     /**
@@ -192,8 +224,21 @@ public class RecordPatternSwitchChallenge {
      * @return Category string
      */
     public String categorizeStudent(Object obj) {
-        // TODO: Use record patterns with StudentLevel enum
-        return null;
+        return switch(obj) {
+            case StudentScore(_, _, double score, StudentLevel level)
+                when level == StudentLevel.ADVANCED && score >= 90 -> "EXPERT";
+            case StudentScore(_, _, double score, StudentLevel level)
+                when level == StudentLevel.ADVANCED && score >= 70 -> "PROFICIENT";
+            case StudentScore(_, _, double score, StudentLevel level)
+                when level == StudentLevel.INTERMEDIATE && score >= 80 -> "ADVANCING";
+            case StudentScore(_, _, double score, StudentLevel level)
+                when level == StudentLevel.INTERMEDIATE && score >= 60 -> "PROGRESSING";
+            case StudentScore(_, _, double score, StudentLevel level)
+                when level == StudentLevel.BEGINNER && score >= 70 -> "FAST_LEARNER";
+            case StudentScore(_, _, _, StudentLevel level)
+                when level == StudentLevel.BEGINNER -> "LEARNING";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -214,8 +259,19 @@ public class RecordPatternSwitchChallenge {
      * @return Analysis result
      */
     public String analyzeCourse(Object obj) {
-        // TODO: Destructure CourseStats and apply guards
-        return null;
+        return switch(obj) {
+            case CourseStats(_, _, int enrollments, double rating, boolean published)
+                when published && rating > 4.5 && enrollments > 1000 -> "BESTSELLER";
+            case CourseStats(_, _, int enrollments, double rating, boolean published)
+                when published && rating > 4.0 && enrollments > 500 -> "POPULAR";
+            case CourseStats(_, _, int enrollments, _, boolean published)
+                when published && enrollments > 100 -> "GROWING";
+            case CourseStats(_, _, int enrollments, _, boolean published)
+                when published && enrollments <= 100 -> "NEW";
+            case CourseStats(_, _, _, _, boolean published)
+                when !published -> "DRAFT";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -237,8 +293,19 @@ public class RecordPatternSwitchChallenge {
      * @return Certificate type
      */
     public String validateCertificate(Object obj) {
-        // TODO: Pattern match CompletionSummary
-        return null;
+        return switch(obj) {
+            case CompletionSummary(_, _, double score, _, boolean certified)
+                when score >= 90 && certified -> "HONORS_CERTIFICATE";
+            case CompletionSummary(_, _, double score, _, boolean certified)
+                when score >= 80 && certified -> "MERIT_CERTIFICATE";
+            case CompletionSummary(_, _, double score, _, boolean certified)
+                when score >= 70 && certified -> "COMPLETION_CERTIFICATE";
+            case CompletionSummary(_, _, double score, _, boolean certified)
+                when score >= 70 && !certified -> "PENDING_VERIFICATION";
+            case CompletionSummary(_, _, double score, _, _)
+                when score < 70 -> "INSUFFICIENT_SCORE";
+            default -> "INVALID";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -276,7 +343,16 @@ public class RecordPatternSwitchChallenge {
      * @return Location string
      */
     public String extractLocation(Object obj) {
-        return null;
+        if (obj instanceof StudentProfile sp) {
+            ContactInfo contact = sp.contact();
+            if (contact != null && contact.address() != null) {
+                Address addr = contact.address();
+                return "Student from " + addr.city() + ", " + addr.country();
+            } else {
+                return "Location unknown";
+            }
+        }
+        return "Invalid profile";
     }
 
     /**
@@ -299,8 +375,18 @@ public class RecordPatternSwitchChallenge {
      * @return Quality assessment
      */
     public String assessQuality(Object obj) {
-        // TODO: Destructure nested instructor info
-        return null;
+        return switch(obj) {
+            case CourseWithInstructor(_, _, InstructorInfo(_, _, _, boolean verified), int enrollments)
+                when verified && enrollments > 1000 -> "PREMIUM_QUALITY";
+            case CourseWithInstructor(_, _, InstructorInfo(_, _, _, boolean verified), int enrollments)
+                when verified && enrollments > 500 -> "HIGH_QUALITY";
+            case CourseWithInstructor(_, _, InstructorInfo(_, _, _, boolean verified), _)
+                when verified -> "QUALITY_ASSURED";
+            case CourseWithInstructor(_, _, InstructorInfo(_, _, _, boolean verified), int enrollments)
+                when !verified && enrollments > 1000 -> "POPULAR_UNVERIFIED";
+            case CourseWithInstructor(_, _, _, _) -> "STANDARD";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -330,8 +416,38 @@ public class RecordPatternSwitchChallenge {
      * @return Status report
      */
     public String reportStatus(Object obj) {
-        // TODO: Complex nested pattern with multiple conditions
-        return null;
+        return switch(obj) {
+            case EnrollmentDetails(
+                StudentProfile(_, String name, _, StudentLevel level),
+                CourseWithInstructor(_, String title, InstructorInfo(_, _, _, boolean verified), _),
+                _, Double score)
+                when level == StudentLevel.ADVANCED && verified && score != null && score >= 90 ->
+                "EXCELLENT: " + name + " scored " + score + " in " + title;
+            case EnrollmentDetails(
+                StudentProfile(_, String name, _, StudentLevel level),
+                CourseWithInstructor(_, String title, InstructorInfo(_, _, _, boolean verified), _),
+                _, Double score)
+                when level == StudentLevel.ADVANCED && verified && score != null && score >= 80 ->
+                "VERY_GOOD: " + name + " scored " + score + " in " + title;
+            case EnrollmentDetails(
+                StudentProfile(_, String name, _, _),
+                CourseWithInstructor(_, String title, _, _),
+                int progress, Double score)
+                when progress >= 75 && score == null ->
+                "NEAR_COMPLETION: " + name + " is at " + progress + "% in " + title;
+            case EnrollmentDetails(
+                StudentProfile(_, String name, _, _),
+                CourseWithInstructor(_, String title, _, _),
+                int progress, _)
+                when progress < 25 ->
+                "EARLY_STAGE: " + name + " just started " + title;
+            case EnrollmentDetails(
+                StudentProfile(_, String name, _, _),
+                CourseWithInstructor(_, String title, _, _),
+                _, _) ->
+                "IN_PROGRESS: " + name + " is learning " + title;
+            default -> "INVALID";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -365,7 +481,23 @@ public class RecordPatternSwitchChallenge {
      * @return Performance category
      */
     public String analyzeScores(Object obj) {
-        return null;
+        return switch(obj) {
+            case StudentWithScores s when s.scores() == null || s.scores().isEmpty() ->
+                "NO_SCORES";
+            case StudentWithScores s when s.scores().stream().allMatch(score -> score >= 80) ->
+                "EXCELLENT_RECORD";
+            case StudentWithScores s -> {
+                double avg = s.scores().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                if (avg >= 70) {
+                    yield "GOOD_PERFORMANCE";
+                } else if (avg >= 50) {
+                    yield "PASSING";
+                } else {
+                    yield "NEEDS_IMPROVEMENT";
+                }
+            }
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -388,8 +520,21 @@ public class RecordPatternSwitchChallenge {
      * @return Value assessment
      */
     public String assessBundle(Object obj) {
-        // TODO: Pattern match with collection size checks
-        return null;
+        return switch(obj) {
+            case CourseBundle(_, List<String> courseTitles, double totalPrice)
+                when courseTitles.size() >= 5 && totalPrice < 100 -> "BARGAIN";
+            case CourseBundle(_, List<String> courseTitles, _)
+                when courseTitles.size() >= 5 -> "COMPREHENSIVE_BUNDLE";
+            case CourseBundle(_, List<String> courseTitles, double totalPrice)
+                when courseTitles.size() >= 3 && courseTitles.size() <= 4 && totalPrice < 50 -> "VALUE_PACK";
+            case CourseBundle(_, List<String> courseTitles, _)
+                when courseTitles.size() >= 3 && courseTitles.size() <= 4 -> "STANDARD_BUNDLE";
+            case CourseBundle(_, List<String> courseTitles, _)
+                when courseTitles.size() >= 1 && courseTitles.size() <= 2 -> "MINI_BUNDLE";
+            case CourseBundle(_, List<String> courseTitles, _)
+                when courseTitles.isEmpty() -> "EMPTY_BUNDLE";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -413,8 +558,19 @@ public class RecordPatternSwitchChallenge {
      * @return Expertise level
      */
     public String determineExpertise(Object obj) {
-        // TODO: Destructure and check list sizes
-        return null;
+        return switch(obj) {
+            case InstructorPortfolio(_, List<String> courseIds, List<String> specializations)
+                when courseIds.size() >= 10 && specializations.size() >= 3 -> "MASTER_INSTRUCTOR";
+            case InstructorPortfolio(_, List<String> courseIds, List<String> specializations)
+                when courseIds.size() >= 5 && specializations.size() >= 2 -> "EXPERT_INSTRUCTOR";
+            case InstructorPortfolio(_, List<String> courseIds, List<String> specializations)
+                when courseIds.size() >= 3 && specializations.size() >= 1 -> "EXPERIENCED_INSTRUCTOR";
+            case InstructorPortfolio(_, List<String> courseIds, _)
+                when courseIds.size() >= 1 && courseIds.size() <= 2 -> "JUNIOR_INSTRUCTOR";
+            case InstructorPortfolio(_, List<String> courseIds, _)
+                when courseIds.isEmpty() -> "NEW_INSTRUCTOR";
+            default -> "INVALID";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -439,8 +595,22 @@ public class RecordPatternSwitchChallenge {
      * @return Perimeter value
      */
     public double calculatePerimeter(Object shape) {
-        // TODO: Use record patterns with mathematical calculations
-        return 0.0;
+        return switch(shape) {
+            case Circle(Point _, int radius) -> 2 * Math.PI * radius;
+            case Rectangle(Point topLeft, Point bottomRight) -> {
+                int width = bottomRight.x - topLeft.x;
+                int height = bottomRight.y - topLeft.y;
+                yield 2 * (width + height);
+            }
+            case Line(Point start, Point end) -> {
+                int dx = end.x - start.x;
+                int dy = end.y - start.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+                yield 2 * distance;
+            }
+            case Point _ -> 0.0;
+            default -> -1.0;
+        };
     }
 
     /**
@@ -462,8 +632,20 @@ public class RecordPatternSwitchChallenge {
      * @return True if point is contained
      */
     public boolean containsPoint(Object shape, Point point) {
-        // TODO: Complex pattern matching with geometric calculations
-        return false;
+        return switch(shape) {
+            case Circle(Point center, int radius) -> {
+                int dx = point.x - center.x;
+                int dy = point.y - center.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+                yield distance <= radius;
+            }
+            case Rectangle(Point topLeft, Point bottomRight) ->
+                point.x >= topLeft.x && point.x <= bottomRight.x &&
+                point.y >= topLeft.y && point.y <= bottomRight.y;
+            case Line _ -> false;
+            case Point p -> p.x == point.x && p.y == point.y;
+            default -> false;
+        };
     }
 
     /**
@@ -484,8 +666,32 @@ public class RecordPatternSwitchChallenge {
      * @param obj Learning path object
      * @return Validation result
      */
+    record LearningPath(StudentProfile student, List<CourseWithInstructor> courses,
+                       List<Integer> progressList) {}
+
     public String validateLearningPath(Object obj) {
-        return null;
+        return switch(obj) {
+            case LearningPath(StudentProfile(_, _, _, StudentLevel level), List<CourseWithInstructor> courses, List<Integer> progressList)
+                when level == StudentLevel.ADVANCED && courses.size() >= 5 -> {
+                double avgProgress = progressList.stream().mapToInt(Integer::intValue).average().orElse(0);
+                yield avgProgress > 75 ? "EXCELLENT_PROGRESS" : "REVIEW_NEEDED";
+            }
+            case LearningPath(StudentProfile(_, _, _, StudentLevel level), List<CourseWithInstructor> courses, List<Integer> progressList)
+                when level == StudentLevel.INTERMEDIATE && courses.size() >= 3 -> {
+                double avgProgress = progressList.stream().mapToInt(Integer::intValue).average().orElse(0);
+                yield avgProgress > 60 ? "ON_TRACK" : "REVIEW_NEEDED";
+            }
+            case LearningPath(StudentProfile(_, _, _, StudentLevel level), List<CourseWithInstructor> courses, List<Integer> progressList)
+                when level == StudentLevel.BEGINNER && courses.size() >= 1 -> {
+                double avgProgress = progressList.stream().mapToInt(Integer::intValue).average().orElse(0);
+                yield avgProgress > 50 ? "GOOD_START" : "REVIEW_NEEDED";
+            }
+            case LearningPath(_, _, List<Integer> progressList) -> {
+                double avgProgress = progressList.stream().mapToInt(Integer::intValue).average().orElse(0);
+                yield avgProgress < 25 ? "NEEDS_MOTIVATION" : "REVIEW_NEEDED";
+            }
+            default -> "REVIEW_NEEDED";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

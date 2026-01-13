@@ -64,6 +64,12 @@ public class PatternMatchingChallenge {
      * @return Length of string or enrollment count of course
      */
     public int getLengthOrCount(Object obj) {
+        if(obj instanceof String s) {
+            return s.length();
+        } else if(obj instanceof Course c) {
+            return c.getEnrollmentCount();
+        }
+        
         return 0;
     }
 
@@ -82,7 +88,9 @@ public class PatternMatchingChallenge {
      * @return True if student has average score > 80
      */
     public boolean isHighPerformer(Object obj) {
-        // TODO: if (obj instanceof Student s && s.getAverageScore() != null && s.getAverageScore() > 80)
+        if (obj instanceof Student s && s.getAverageScore() != null && s.getAverageScore() > 80) {
+            return true;
+        }
         return false;
     }
 
@@ -104,6 +112,14 @@ public class PatternMatchingChallenge {
      * @return Enrollment count
      */
     public int countEnrollments(Object obj) {
+        if(obj instanceof Student s) {
+            return s.getEnrollments().size();
+        } else if(obj instanceof Course c) {
+            return c.getEnrollmentCount();
+        } else if(obj instanceof Enrollment) {
+            return 1;
+        }
+
         return 0;
     }
 
@@ -132,7 +148,14 @@ public class PatternMatchingChallenge {
      * @return Description string
      */
     public String describeObject(Object obj) {
-        return null;
+        return switch(obj) {
+            case String s -> "Text: " + s;
+            case Integer i -> "Number: " + i;
+            case Student st -> "Student: " + st.getFullName();
+            case Course c -> "Course: " + c.getTitle();
+            case null -> "Null Object";
+            default -> "Unknown Type";
+        };
     }
 
     /**
@@ -157,8 +180,15 @@ public class PatternMatchingChallenge {
      * @return Priority score
      */
     public int getPriorityScore(Object entity) {
-        // TODO: Use switch with when guards
-        return 0;
+        return switch(entity) {
+            case Instructor i when i.isVerified() -> 100;
+            case Instructor i when !i.isVerified() -> 50;
+            case Student s when s.getLevel() == StudentLevel.ADVANCED -> 80;
+            case Student s when s.getLevel() != StudentLevel.ADVANCED -> 40;
+            case Course c when c.isPublished() -> 60;
+            case Course c when !c.isPublished() -> 20;
+            default -> 0;
+        };
     }
 
     /**
@@ -288,7 +318,13 @@ public class PatternMatchingChallenge {
      * @return Classification
      */
     public String safeStringClassifier(Object obj) {
-        return null;
+        return switch(obj) {
+            case null -> "NULL";
+            case String s when s.isEmpty() -> "EMPTY";
+            case String s when s.length() > 10 -> "LONG";
+            case String s -> "SHORT";
+            default -> "NOT_STRING";
+        };
     }
 
     /**
@@ -310,8 +346,14 @@ public class PatternMatchingChallenge {
      * @return Price as double
      */
     public double extractPrice(Object obj) {
-        // TODO: Implement with null-safe pattern matching
-        return 0.0;
+        return switch(obj) {
+            case Course c when c.getPrice() != null -> c.getPrice().doubleValue();
+            case Course c -> 0.0;
+            case Payment p when p.getFinalAmount() != null -> p.getFinalAmount().doubleValue();
+            case Payment p when p.getAmount() != null -> p.getAmount().doubleValue();
+            case null -> 0.0;
+            default -> 0.0;
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -339,8 +381,22 @@ public class PatternMatchingChallenge {
      * @return Report string
      */
     public String generateTypeReport(List<Object> objects) {
-        // TODO: Use pattern matching to count each type
-        return null;
+        Map<String, Integer> types = Map.of("Students", 0, "Courses", 0, 
+            "Enrollments", 0, "Instructors", 0, "Others", 0);
+        
+        objects.forEach(obj -> {
+            switch(obj) {
+                case Student s -> types.replace("Students", types.get("Students") + 1);
+                case Course c -> types.replace("Courses", types.get("Courses") + 1);
+                case Enrollment e -> types.replace("Enrollments", types.get("Enrollments") + 1);
+                case Instructor i -> types.replace("Instructors", types.get("Instructors") + 1);
+                default -> types.replace("Others", types.get("Others") + 1);
+            }
+        });
+        
+        return String.format("Students: %d, Courses: %d, Enrollments: %d, Instructors: %d, Others: %d",
+            types.get("Students"), types.get("Courses"), types.get("Enrollments"),
+            types.get("Instructors"), types.get("Others"));
     }
 
     /**
@@ -364,8 +420,16 @@ public class PatternMatchingChallenge {
      * @return Queue name
      */
     public String routeToQueue(Object entity) {
-        // TODO: Implement routing logic with pattern matching
-        return null;
+        return switch(entity) {
+            case Student s when s.isActive() -> "STUDENT_ACTIVE_QUEUE";
+            case Student s when !s.isActive() -> "STUDENT_REACTIVATION_QUEUE";
+            case Course c when c.isPublished() -> "COURSE_LIVE_QUEUE";
+            case Course c when !c.isPublished() -> "COURSE_REVIEW_QUEUE";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.COMPLETED -> "ENROLLMENT_CERTIFICATE_QUEUE";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE -> "ENROLLMENT_PROGRESS_QUEUE";
+            case Enrollment e -> "ENROLLMENT_SUPPORT_QUEUE";
+            default -> "GENERAL_QUEUE";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

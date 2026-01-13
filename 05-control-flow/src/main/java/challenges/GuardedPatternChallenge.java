@@ -70,7 +70,20 @@ public class GuardedPatternChallenge {
      * @return Discount percentage
      */
     public int calculateDiscount(Object obj) {
-        return 0;
+        return switch(obj) {
+            case Student s when s.getLevel() == StudentLevel.ADVANCED -> 50;
+            case Student s when s.getLevel() == StudentLevel.INTERMEDIATE && s.getAverageScore() > 80 -> 30;
+            case Student s when s.getLevel() == StudentLevel.BEGINNER && s.getAverageScore() > 90 -> 20;
+            case Student s -> 10;
+            case Course c when c.getPrice().doubleValue() > 200 -> 15;
+            case Course c when c.getPrice().doubleValue() > 100 -> 10;
+            case Course c when c.getPrice().doubleValue() > 0 -> 5;
+            case Course c when c.isFree() -> 0;
+            case Instructor i when i.isVerified() && i.getRating() > 4.5 -> 25;
+            case Instructor i when i.isVerified() -> 15;
+            case String s when s.toLowerCase().equals("vip") -> 100;
+            default -> 0;
+        };
     }
 
     /**
@@ -94,8 +107,18 @@ public class GuardedPatternChallenge {
      * @return Eligibility status
      */
     public String checkEligibility(Student student, Course course) {
-        // TODO: Use nested switch or if with pattern matching
-        return null;
+        if (!course.isPublished()) {
+            return "COURSE_NOT_AVAILABLE";
+        }
+
+        return switch(student) {
+            case Student s when !s.isActive() -> "ACCOUNT_INACTIVE";
+            case Student s when s.getLevel() == StudentLevel.BEGINNER && course.getDifficulty() == DifficultyLevel.ADVANCED -> "INSUFFICIENT_LEVEL";
+            case Student s when s.getLevel() == StudentLevel.INTERMEDIATE && course.getDifficulty() == DifficultyLevel.ADVANCED -> "RECOMMENDED_PREREQUISITES";
+            case Student s when s.getEnrollments().size() >= 10 -> "ENROLLMENT_LIMIT_REACHED";
+            case Student s when s.isActive() && course.isPublished() -> "ELIGIBLE";
+            default -> "INVALID_REQUEST";
+        };
     }
 
     /**
@@ -123,7 +146,29 @@ public class GuardedPatternChallenge {
      * @return Letter grade
      */
     public String assignGrade(Object obj) {
-        return null;
+        return switch(obj) {
+            case Double d when d >= 95 -> "A+";
+            case Double d when d >= 90 -> "A";
+            case Double d when d >= 85 -> "A-";
+            case Double d when d >= 80 -> "B+";
+            case Double d when d >= 75 -> "B";
+            case Double d when d >= 70 -> "B-";
+            case Double d when d >= 65 -> "C+";
+            case Double d when d >= 60 -> "C";
+            case Double d when d >= 50 -> "D";
+            case Double d -> "F";
+            case Integer i when i >= 95 -> "A+";
+            case Integer i when i >= 90 -> "A";
+            case Integer i when i >= 85 -> "A-";
+            case Integer i when i >= 80 -> "B+";
+            case Integer i when i >= 75 -> "B";
+            case Integer i when i >= 70 -> "B-";
+            case Integer i when i >= 65 -> "C+";
+            case Integer i when i >= 60 -> "C";
+            case Integer i when i >= 50 -> "D";
+            case Integer i -> "F";
+            default -> "INVALID";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -149,7 +194,11 @@ public class GuardedPatternChallenge {
      * @return Processed value
      */
     public int processInteger(Integer input) {
-        return 0;
+        return switch(input) {
+            case null -> -1;
+            case Integer i when i % 2 == 0 -> i * 2;
+            case Integer i -> i * 3;
+        };
     }
 
     /**
@@ -170,8 +219,13 @@ public class GuardedPatternChallenge {
      * @return Score status
      */
     public String handleScore(Object obj) {
-        // TODO: Implement with null-safe guards
-        return null;
+        return switch(obj) {
+            case Student s when s.getAverageScore() == null -> "NOT_GRADED";
+            case Student s when s.getAverageScore() >= 80 -> "EXCELLENT";
+            case Student s when s.getAverageScore() >= 60 -> "GOOD";
+            case Student s -> "NEEDS_IMPROVEMENT";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -194,8 +248,15 @@ public class GuardedPatternChallenge {
      * @return Size category
      */
     public String routeBySize(Object obj) {
-        // TODO: Use pattern matching with guards for List
-        return null;
+        return switch(obj) {
+            case null -> "NULL_COLLECTION";
+            case List<?> list when list.isEmpty() -> "EMPTY";
+            case List<?> list when list.size() == 1 -> "SINGLE";
+            case List<?> list when list.size() <= 5 -> "SMALL";
+            case List<?> list when list.size() <= 20 -> "MEDIUM";
+            case List<?> list -> "LARGE";
+            default -> "NOT_A_LIST";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -225,8 +286,18 @@ public class GuardedPatternChallenge {
      * @return Status evaluation
      */
     public String evaluateEnrollment(Object obj) {
-        // TODO: Use EnrollmentStatus with guards
-        return null;
+        return switch(obj) {
+            case Enrollment e when e.getStatus() == EnrollmentStatus.COMPLETED && e.getScore() != null && e.getScore() >= 80 -> "EXCELLENT_COMPLETION";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.COMPLETED && e.getScore() != null && e.getScore() >= 60 -> "GOOD_COMPLETION";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.COMPLETED -> "MINIMAL_COMPLETION";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() >= 75 -> "ALMOST_DONE";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() >= 50 -> "HALFWAY_THERE";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() >= 25 -> "GOOD_START";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE -> "JUST_STARTED";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.CANCELLED -> "DROPPED_OUT";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.PAUSED -> "ACCOUNT_SUSPENDED";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -249,7 +320,15 @@ public class GuardedPatternChallenge {
      * @return Instructor classification
      */
     public String classifyInstructor(Object obj) {
-        return null;
+        return switch(obj) {
+            case Instructor i when i.isVerified() && i.getRating() > 4.5 && i.getTotalStudents() > 1000 -> "ELITE";
+            case Instructor i when i.isVerified() && i.getRating() > 4.0 && i.getTotalStudents() > 500 -> "EXPERT";
+            case Instructor i when i.isVerified() && i.getRating() > 3.5 -> "PROFESSIONAL";
+            case Instructor i when i.isVerified() -> "CERTIFIED";
+            case Instructor i when !i.isVerified() && i.getRating() > 4.0 -> "PROMISING";
+            case Instructor i when !i.isVerified() -> "BEGINNER";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -274,8 +353,17 @@ public class GuardedPatternChallenge {
      * @return Recommendation
      */
     public String recommendCourse(Object obj) {
-        // TODO: Implement with complex guards
-        return null;
+        return switch(obj) {
+            case Course c when c.isPublished() && c.getRating() > 4.5 && c.getEnrollmentCount() > 1000 -> "FEATURED";
+            case Course c when c.isPublished() && c.getRating() > 4.0 && c.getEnrollmentCount() > 500 -> "TRENDING";
+            case Course c when c.isPublished() && c.getRating() > 3.5 && c.getEnrollmentCount() > 100 -> "POPULAR";
+            case Course c when c.isPublished() && c.getEnrollmentCount() > 50 -> "ACTIVE";
+            case Course c when c.isPublished() && c.isFree() -> "FREE_LEARN";
+            case Course c when c.isPublished() -> "AVAILABLE";
+            case Course c when !c.isPublished() && c.getRating() > 4.0 -> "READY_TO_PUBLISH";
+            case Course c when !c.isPublished() -> "IN_DEVELOPMENT";
+            default -> "INVALID";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -302,7 +390,15 @@ public class GuardedPatternChallenge {
      * @return Price category
      */
     public String categorizePrice(Object obj) {
-        return null;
+        return switch(obj) {
+            case Course c when c.isFree() -> "FREE";
+            case Course c when c.getPrice().doubleValue() < 20 -> "BUDGET";
+            case Course c when c.getPrice().doubleValue() <= 50 -> "ECONOMY";
+            case Course c when c.getPrice().doubleValue() <= 100 -> "STANDARD";
+            case Course c when c.getPrice().doubleValue() <= 200 -> "PREMIUM";
+            case Course c -> "LUXURY";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -324,8 +420,14 @@ public class GuardedPatternChallenge {
      * @return Duration category
      */
     public String categorizeDuration(Object obj) {
-        // TODO: Implement with guards on durationInHours
-        return null;
+        return switch(obj) {
+            case Course c when c.getDurationInHours() == null -> "UNKNOWN";
+            case Course c when c.getDurationInHours() < 10 -> "SHORT";
+            case Course c when c.getDurationInHours() <= 30 -> "MEDIUM";
+            case Course c when c.getDurationInHours() <= 60 -> "LONG";
+            case Course c -> "COMPREHENSIVE";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -349,8 +451,34 @@ public class GuardedPatternChallenge {
      * @return Progress category
      */
     public String trackProgress(Object obj) {
-        // TODO: Complex calculation with enrollment data
-        return null;
+        if (!(obj instanceof Student s)) {
+            return "INVALID";
+        }
+
+        int totalEnrollments = s.getEnrollments().size();
+        if (totalEnrollments == 0) {
+            return "NEW_STUDENT";
+        }
+
+        long completedCount = s.getEnrollments().stream()
+            .filter(e -> e.getStatus() == EnrollmentStatus.COMPLETED)
+            .count();
+
+        double completionRate = (double) completedCount / totalEnrollments * 100;
+
+        if (totalEnrollments <= 2 && completedCount > 0) {
+            return "ACTIVE_LEARNER";
+        } else if (totalEnrollments <= 5 && completionRate > 50) {
+            return "COMMITTED_LEARNER";
+        } else if (totalEnrollments <= 10 && completionRate > 70) {
+            return "DEDICATED_LEARNER";
+        } else if (totalEnrollments > 10 && completionRate > 80) {
+            return "SUPER_LEARNER";
+        } else if (completionRate < 20) {
+            return "NEEDS_MOTIVATION";
+        } else {
+            return "CASUAL_LEARNER";
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -378,8 +506,16 @@ public class GuardedPatternChallenge {
      * @return Scholarship status
      */
     public String checkScholarship(Object obj) {
-        // TODO: Complex multi-criteria evaluation
-        return null;
+        return switch(obj) {
+            case Student s when s.getLevel() == StudentLevel.ADVANCED && s.getAverageScore() != null && s.getAverageScore() > 90 && s.isActive() -> "FULL_SCHOLARSHIP";
+            case Student s when s.getLevel() == StudentLevel.ADVANCED && s.getAverageScore() != null && s.getAverageScore() > 80 && s.isActive() -> "PARTIAL_SCHOLARSHIP_75";
+            case Student s when s.getLevel() == StudentLevel.INTERMEDIATE && s.getAverageScore() != null && s.getAverageScore() > 90 && s.isActive() -> "PARTIAL_SCHOLARSHIP_50";
+            case Student s when s.getAverageScore() != null && s.getAverageScore() > 85 && s.isActive() && s.getEnrollments().size() > 5 -> "MERIT_SCHOLARSHIP";
+            case Student s when s.isActive() && s.getEnrollments().size() > 10 -> "LOYALTY_SCHOLARSHIP";
+            case Student s when s.isActive() -> "ELIGIBLE_FOR_ASSISTANCE";
+            case Student s when !s.isActive() -> "NOT_ELIGIBLE";
+            default -> "INVALID";
+        };
     }
 
     /**
@@ -403,8 +539,16 @@ public class GuardedPatternChallenge {
      * @return Priority queue
      */
     public String assignPriority(Object obj) {
-        // TODO: Complex prioritization logic
-        return null;
+        return switch(obj) {
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() < 25 -> "P1_AT_RISK";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() >= 25 && e.getProgressPercentage() <= 50 -> "P2_NEEDS_ENCOURAGEMENT";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE && e.getProgressPercentage() > 75 -> "P3_NEAR_COMPLETION";
+            case Student s when !s.isActive() && !s.getEnrollments().isEmpty() -> "P1_REACTIVATION";
+            case Student s when s.isActive() && s.getEnrollments().isEmpty() -> "P2_NEW_USER";
+            case Course c when c.isPublished() && c.getRating() < 3.0 -> "P1_QUALITY_REVIEW";
+            case Course c when !c.isPublished() -> "P2_PENDING_REVIEW";
+            default -> "P3_GENERAL";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
