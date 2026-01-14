@@ -213,8 +213,17 @@ public class PatternMatchingChallenge {
      * @return Notification message
      */
     public String getNotificationMessage(Object obj) {
-        // TODO: Implement switch with guarded patterns
-        return null;
+        return switch(obj) {
+            case Student s when s.isActive() && s.getEnrollments().isEmpty() -> "Welcome! Browse our courses.";
+            case Student s when s.isActive() && !s.getEnrollments().isEmpty() -> "Continue your learning journey!";
+            case Student s when !s.isActive() -> "We miss you! Come back.";
+            case Course c when c.getPrice() == null || c.getPrice().compareTo(BigDecimal.ZERO) == 0 -> "Free course available!";
+            case Course c when c.getPrice().compareTo(new BigDecimal("50")) < 0 -> "Affordable course!";
+            case Course c when c.getPrice().compareTo(new BigDecimal("50")) >= 0 -> "Premium course!";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.COMPLETED -> "Congratulations on completion!";
+            case Enrollment e when e.getStatus() == EnrollmentStatus.ACTIVE -> "Keep up the good work!";
+            default -> "No notification";
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -243,7 +252,14 @@ public class PatternMatchingChallenge {
      * @return Classification string
      */
     public String classifyNumber(Object obj) {
-        return null;
+        return switch(obj) {
+            case Integer i when i > 100 -> "Large Number";
+            case Integer i when i > 50 -> "Medium Number";
+            case Integer i when i > 0 -> "Small Number";
+            case Integer i when i == 0 -> "Zero";
+            case Integer i when i < 0 -> "Negative Number";
+            default -> "Not a Number";
+        };
     }
 
     /**
@@ -266,8 +282,19 @@ public class PatternMatchingChallenge {
      * @return Pricing strategy
      */
     public String getPricingStrategy(Object obj) {
-        // TODO: Implement using switch with when clauses
-        return null;
+        return switch(obj) {
+            case Course c when c.getPrice() == null || c.getPrice().compareTo(BigDecimal.ZERO) == 0 -> "FREE_TIER";
+            case Course c when c.getPrice().compareTo(new BigDecimal("30")) < 0 -> "BUDGET";
+            case Course c when c.getPrice().compareTo(new BigDecimal("30")) >= 0 &&
+                              c.getPrice().compareTo(new BigDecimal("100")) <= 0 &&
+                              c.getDifficulty() == DifficultyLevel.BEGINNER -> "STARTER";
+            case Course c when c.getPrice().compareTo(new BigDecimal("30")) >= 0 &&
+                              c.getPrice().compareTo(new BigDecimal("100")) <= 0 -> "STANDARD";
+            case Course c when c.getPrice().compareTo(new BigDecimal("100")) > 0 &&
+                              c.getDifficulty() == DifficultyLevel.ADVANCED -> "PREMIUM";
+            case Course c when c.getPrice().compareTo(new BigDecimal("100")) > 0 -> "PROFESSIONAL";
+            default -> "UNKNOWN";
+        };
     }
 
     /**
@@ -289,8 +316,18 @@ public class PatternMatchingChallenge {
      * @return Discount percentage
      */
     public int calculateStudentDiscount(Object obj) {
-        // TODO: Use pattern matching with guards
-        return 0;
+        return switch(obj) {
+            case Student s when s.getLevel() == StudentLevel.ADVANCED &&
+                               s.getAverageScore() != null &&
+                               s.getAverageScore() > 90 -> 50;
+            case Student s when s.getLevel() == StudentLevel.ADVANCED -> 30;
+            case Student s when s.getLevel() == StudentLevel.INTERMEDIATE &&
+                               s.getAverageScore() != null &&
+                               s.getAverageScore() > 80 -> 20;
+            case Student s when s.isActive() -> 10;
+            case Student s when !s.isActive() -> 0;
+            default -> 0;
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

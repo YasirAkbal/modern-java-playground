@@ -5,8 +5,10 @@ import model.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -72,8 +74,15 @@ public class HttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public String fetchPostSync() throws IOException, InterruptedException {
-        return null;
+    public String fetchPostSync() throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts/1"))
+                                .version(HttpClient.Version.HTTP_2)
+                                .GET()
+                                .build();
+        
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.body();
     }
 
     /**
@@ -87,8 +96,17 @@ public class HttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public int fetchWithHeaders(String url) throws IOException, InterruptedException {
-        return 0;
+    public int fetchWithHeaders(String url) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .version(HttpClient.Version.HTTP_2)
+                                .GET()
+                                .header("User-Agent", "JavaHttpClientChallenge/1.0")
+                                .header("Accept", "application/json")
+                                .build();
+        
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());            
+
+        return response.statusCode();
     }
 
     /**
@@ -104,10 +122,19 @@ public class HttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public int fetchCourseCount() throws IOException, InterruptedException {
-        // TODO: Create GET request to /posts endpoint
-        // TODO: Parse response and count items (hint: count '{' occurrences or use JSON library)
-        return 0;
+    public int fetchCourseCount() throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts"))
+                                .version(HttpClient.Version.HTTP_2)
+                                .GET()
+                                .header("User-Agent", "JavaHttpClientChallenge/1.0")
+                                .header("Accept", "application/json")
+                                .build();
+        
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());   
+        String body = response.body();
+        int count = body.split("\\},\\s*\\{").length; // non optimal way to count JSON objects in array
+
+        return count;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -127,8 +154,14 @@ public class HttpClientChallenge {
      *
      * @return CompletableFuture containing the response body
      */
-    public CompletableFuture<String> fetchPostAsync() {
-        return null;    
+    public CompletableFuture<String> fetchPostAsync() throws URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts"))
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .GET()
+                                    .build();
+
+        return client.sendAsync(request, BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body);
     }
 
     /**
@@ -140,9 +173,20 @@ public class HttpClientChallenge {
      * @return CompletableFuture containing the extracted title
      */
     public CompletableFuture<String> fetchPostTitleAsync() {
-        // TODO: sendAsync to /posts/1
-        // TODO: Use thenApply to extract title from JSON (hint: indexOf "\"title\":")
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://jsonplaceholder.typicode.com/posts/1"))
+                .GET()
+                .build();
+
+        return client.sendAsync(request, BodyHandlers.ofString())
+                    .thenApply(r -> {
+                        String body = r.body();
+                        int titleIndex = body.indexOf("\"title\":");
+                        if (titleIndex == -1) return null;
+                        int start = body.indexOf("\"", titleIndex + 8) + 1;
+                        int end = body.indexOf("\"", start);
+                        return body.substring(start, end);
+                    });
     }
 
     /**
@@ -155,8 +199,14 @@ public class HttpClientChallenge {
      * @return CompletableFuture with response body or error message
      */
     public CompletableFuture<String> fetchWithErrorHandling(String url) {
-        // TODO: sendAsync with exceptionally() to catch errors
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
+
+        return client.sendAsync(request, BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)
+                    .exceptionally(e -> "Error: " + e.getMessage());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -178,7 +228,13 @@ public class HttpClientChallenge {
      * @throws InterruptedException if request is interrupted
      */
     public String createPost() throws IOException, InterruptedException {
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("https://jsonplaceholder.typicode.com/posts"))
+                                .header("Content-Type", "application/json")
+                                .POST(BodyPublishers.ofString("{\n  \"title\": \"foo\",\n  \"body\": \"bar\",\n  \"userId\": 1,\n  \"id\": 101\n}"))
+                                .build();
+
+        return client.send(request, BodyHandlers.ofString()).body();
     }
 
     /**
@@ -201,7 +257,14 @@ public class HttpClientChallenge {
      * @throws InterruptedException if request is interrupted
      */
     public String postCourseData() throws IOException, InterruptedException {
-        return null;
+        Course course = courses.getFirst();
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("https://jsonplaceholder.typicode.com/posts"))
+                                .header("Content-Type", "application/json")
+                                .POST(BodyPublishers.ofString("{\n  \"title\": \"" + course.getTitle() + "\",\n  \"body\": \"" + course.getDescription() + "\",\n  \"userId\": 1\n}"))
+                                .build();
+
+        return client.send(request, BodyHandlers.ofString()).body();
     }
 
     /**
@@ -217,9 +280,14 @@ public class HttpClientChallenge {
      * @return CompletableFuture with the response body
      */
     public CompletableFuture<String> createCommentAsync(int postId, String name, String email, String body) {
-        // TODO: Build JSON with postId, name, email, body
-        // TODO: sendAsync POST to /posts/{postId}/comments
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://jsonplaceholder.typicode.com/posts/" + postId + "/comments"))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString("{\n  \"name\": \"" + name + "\",\n  \"email\": \"" + email + "\",\n  \"body\": \"" + body + "\"\n}"))
+                .build();
+
+        return client.sendAsync(request, BodyHandlers.ofString())
+                     .thenApply(HttpResponse::body);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -236,9 +304,14 @@ public class HttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public boolean isResponseSuccessful(String url) throws IOException, InterruptedException {
-        // TODO: Send request and check response.statusCode() >= 200 && < 300
-        return false;
+    public boolean isResponseSuccessful(String url) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+                                
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.statusCode() >= 200 && response.statusCode() < 300;
     }
 
     /**
@@ -251,9 +324,14 @@ public class HttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public String getContentType(String url) throws IOException, InterruptedException {
-        // TODO: Send request and extract headers().firstValue("Content-Type")
-        return null;
+    public String getContentType(String url) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.headers().firstValue("Content-Type").orElseThrow();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -272,6 +350,19 @@ public class HttpClientChallenge {
     public CompletableFuture<Void> batchUploadCourses(List<Course> coursesToUpload) {
         // TODO: Map each course to a POST request (use sendAsync)
         // TODO: Collect all futures and use CompletableFuture.allOf()
+
+        List<CompletableFuture<HttpResponse<String>>> futures = coursesToUpload.stream()
+            .map(c -> {
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://jsonplaceholder.typicode.com/posts"))
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString("{\n  \"title\": \"" + c.getTitle() + "\",\n  \"body\": \"" + c.getDescription() + "\",\n  \"userId\": 1\n}"))
+                    .build();
+                
+                return client.sendAsync(request, BodyHandlers.ofString());
+            })
+            .toList();
+
         return null;
     }
 
