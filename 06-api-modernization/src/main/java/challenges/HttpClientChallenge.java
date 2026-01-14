@@ -348,9 +348,6 @@ public class HttpClientChallenge {
      * @return CompletableFuture that completes when all uploads finish
      */
     public CompletableFuture<Void> batchUploadCourses(List<Course> coursesToUpload) {
-        // TODO: Map each course to a POST request (use sendAsync)
-        // TODO: Collect all futures and use CompletableFuture.allOf()
-
         List<CompletableFuture<HttpResponse<String>>> futures = coursesToUpload.stream()
             .map(c -> {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -363,7 +360,7 @@ public class HttpClientChallenge {
             })
             .toList();
 
-        return null;
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -5,19 +5,27 @@ import model.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -87,7 +95,15 @@ public class AdvancedHttpClientChallenge {
      * @throws InterruptedException if request is interrupted
      */
     public void streamTextData(String url) throws IOException, InterruptedException {
-        return;
+        HttpRequest request = HttpRequest.newBuilder()
+                                        .uri(URI.create(url))
+                                        .GET()
+                                        .build();
+
+        HttpResponse<Stream<String>> response = client.send(request, BodyHandlers.ofLines());
+
+        response.body()
+            .forEach(System.out::println);
     }
 
     /**
@@ -101,8 +117,15 @@ public class AdvancedHttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public long countLinesInResponse(String url) throws IOException, InterruptedException {
-        return 0;
+    public long countLinesInResponse(String url) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+
+        long numberOfLines = client.send(request, BodyHandlers.ofLines())
+                                .body()
+                                .count();
+        return numberOfLines;
     }
 
     /**
@@ -117,10 +140,17 @@ public class AdvancedHttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public List<String> filterStreamedLines(String url, String keyword) throws IOException, InterruptedException {
-        // TODO: Send request with BodyHandlers.ofLines()
-        // TODO: Filter stream by keyword and collect to list
-        return null;
+    public List<String> filterStreamedLines(String url, String keyword) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+
+        List<String> filteredLines = client.send(request, BodyHandlers.ofLines())
+                                    .body()
+                                    .filter(line -> line.contains(keyword))
+                                    .collect(Collectors.toList());
+
+        return filteredLines;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -144,8 +174,13 @@ public class AdvancedHttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public Path downloadFile(String url, Path destination) throws IOException, InterruptedException {
-        return null;
+    public Path downloadFile(String url, Path destination) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+        
+        HttpResponse<Path> response = client.send(request, BodyHandlers.ofFile(destination));
+        return response.body();
     }
 
     /**
@@ -160,11 +195,15 @@ public class AdvancedHttpClientChallenge {
      * @throws IOException if network error occurs
      * @throws InterruptedException if request is interrupted
      */
-    public long downloadWithProgress(String url, Path destination) throws IOException, InterruptedException {
-        // TODO: Send request and save to file
-        // TODO: Extract Content-Length header
-        // TODO: Return file size
-        return 0;
+    public long downloadWithProgress(String url, Path destination) throws IOException, InterruptedException, URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                                .GET()
+                                .build();
+        
+        HttpResponse<Void> response = client.send(request, BodyHandlers.discarding());
+        long contentSize = Long.parseLong(response.headers().firstValue("Content-Length").orElse("0"));
+
+        return contentSize;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -190,7 +229,24 @@ public class AdvancedHttpClientChallenge {
      * @return List of response bodies in the same order as input URLs
      */
     public List<String> fetchAllUrls(List<String> urls) {
-        return null;
+        List<CompletableFuture<String>> completableFutureList = urls.stream()
+            .map(url -> {
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+                return client.sendAsync(request, BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body);
+            })
+            .toList();
+
+        CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]))
+            .join(); 
+
+        return completableFutureList.stream()
+            .map(CompletableFuture::join)
+            .toList();
     }
 
     /**
@@ -203,7 +259,26 @@ public class AdvancedHttpClientChallenge {
      * @return List of fetched responses (one per course)
      */
     public List<String> fetchCourseDetailsParallel() {
-        return null;
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+
+        IntStream.range(0, Math.min(10, courses.size()))
+            .forEach(i -> {
+                int courseId = i + 1; 
+                String url = "https://jsonplaceholder.typicode.com/posts/" + courseId;
+
+                HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(URI.create(url))
+                                            .GET()
+                                            .build();
+
+                CompletableFuture<String> future = client.sendAsync(request, BodyHandlers.ofString())
+                                                    .thenApply(HttpResponse::body);
+                futures.add(future);
+            });
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
     }
 
     /**
@@ -216,10 +291,20 @@ public class AdvancedHttpClientChallenge {
      * @return Response from the fastest server
      */
     public String fetchFromFastestServer(List<String> urls) {
-        // TODO: Create sendAsync requests for all URLs
-        // TODO: Use CompletableFuture.anyOf() to get first response
-        // TODO: Return the body of the fastest response
-        return null;
+        var completableFutureList = urls.stream().map(url -> {
+            HttpRequest request = HttpRequest.newBuilder()
+                                        .uri(URI.create(url))
+                                        .GET()
+                                        .build();
+            
+            return client.sendAsync(request, BodyHandlers.ofString()).thenApply(HttpResponse::body);
+        })
+        .toList();
+
+        var firstResponse = CompletableFuture.anyOf(completableFutureList.toArray(new CompletableFuture[0]))
+            .join();
+
+        return (String) firstResponse;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -248,7 +333,17 @@ public class AdvancedHttpClientChallenge {
      */
     public String fetchWithBasicAuth(String url, String username, String password)
             throws IOException, InterruptedException {
-                return null;
+        String auth = username + ":" + password; 
+        String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .header("Authorization", "Basic " + encodedAuth)
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        return response.body();
     }
 
     /**
@@ -264,9 +359,15 @@ public class AdvancedHttpClientChallenge {
      */
     public String fetchWithBearerToken(String url, String token)
             throws IOException, InterruptedException {
-        // TODO: Add "Authorization: Bearer {token}" header
-        // TODO: Send GET request
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .header("Authorization", "Bearer " + token)
+                                .GET()
+                                .build();
+                                
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.body();
     }
 
     /**
@@ -282,9 +383,15 @@ public class AdvancedHttpClientChallenge {
      */
     public String fetchWithApiKey(String url, String apiKey)
             throws IOException, InterruptedException {
-        // TODO: Add "X-API-Key: {apiKey}" header
-        // TODO: Send GET request
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .header("X-API-Key", apiKey)
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.body();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -305,7 +412,15 @@ public class AdvancedHttpClientChallenge {
      */
     public String fetchWithTimeout(String url, int timeoutSeconds)
             throws IOException, InterruptedException {
-                return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .timeout(Duration.ofSeconds(timeoutSeconds))
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        
+        return response.body();
     }
 
     /**
@@ -319,11 +434,31 @@ public class AdvancedHttpClientChallenge {
      * @return Response body
      * @throws IOException if all retries fail
      * @throws InterruptedException if request is interrupted
+     * @throws ExecutionException 
      */
     public String fetchWithRetry(String url, int maxRetries)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, ExecutionException {
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .GET()
+                                .build();
+        
+        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request, BodyHandlers.ofString())
+                        .thenComposeAsync(r -> retry(request, r, 1, maxRetries, false));
+        
+        return response.get().body();
+    }
 
-        return null;
+    private CompletableFuture<HttpResponse<String>> retry(HttpRequest request, HttpResponse<String> response, int count, int maxRetries, boolean exponentialBackoff) {
+        if (response.statusCode() == 200 || count >= maxRetries) {
+            return CompletableFuture.completedFuture(response);
+        } else {
+            long delaySeconds = exponentialBackoff ? (long) Math.pow(2, count) : 1;
+            Executor afterDelay = CompletableFuture.delayedExecutor(delaySeconds, TimeUnit.SECONDS);
+            return CompletableFuture.supplyAsync(() -> null, afterDelay)
+                .thenComposeAsync(v -> client.sendAsync(request, BodyHandlers.ofString()))
+                .thenComposeAsync(r -> retry(request, r, count + 1, maxRetries, exponentialBackoff));
+        }
     }
 
     /**
@@ -339,9 +474,19 @@ public class AdvancedHttpClientChallenge {
      */
     public String fetchWithExponentialBackoff(String url, int maxRetries)
             throws IOException, InterruptedException {
-        // TODO: Implement retry with exponential backoff
-        // TODO: Wait times: 1s, 2s, 4s, 8s (2^attempt seconds)
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .GET()
+                                .build();
+
+        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request, BodyHandlers.ofString())
+                        .thenComposeAsync(r -> retry(request, r, 1, maxRetries, true));
+
+        try {
+            return response.get().body();
+        } catch (ExecutionException e) {
+            throw new IOException("All retries failed", e);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -358,7 +503,24 @@ public class AdvancedHttpClientChallenge {
      * @return List of response bodies
      */
     public List<String> fetchWithHttp2(List<String> urls) {
-        return null;
+        List<CompletableFuture<String>> completableFutureList = urls.stream()
+            .map(url -> {
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+                return http2Client.sendAsync(request, BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body);
+            })
+            .toList();
+
+        CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]))
+            .join(); 
+
+        return completableFutureList.stream()
+            .map(CompletableFuture::join)
+            .toList();
     }
 
     /**
@@ -370,11 +532,24 @@ public class AdvancedHttpClientChallenge {
      * @return Array: [http1Time, http2Time, timeSaved]
      */
     public long[] compareHttpVersions() {
-        // TODO: Create list of 10 URLs
-        // TODO: Measure time for HTTP/1.1 requests
-        // TODO: Measure time for HTTP/2 requests
-        // TODO: Return comparison
-        return null;
+        List<String> urls = IntStream.range(0, 100)
+                                .boxed()
+                                .map(i -> "https://jsonplaceholder.typicode.com/posts/" + (i+1))
+                                .toList();
+
+        LocalTime http1Start = LocalTime.now();
+        fetchAllUrls(urls);
+        LocalTime http1End = LocalTime.now();
+
+        LocalTime http2Start = LocalTime.now();
+        fetchWithHttp2(urls);
+        LocalTime http2End = LocalTime.now();
+        
+        return new long[] {
+            Duration.between(http1Start, http1End).toMillis(),
+            Duration.between(http2Start, http2End).toMillis(),
+            Duration.between(http1Start, http1End).toMillis() - Duration.between(http2Start, http2End).toMillis()
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -393,7 +568,18 @@ public class AdvancedHttpClientChallenge {
      * @throws InterruptedException if request is interrupted
      */
     public String fetchWithLogging(String url) throws IOException, InterruptedException {
-        return null;
+        System.out.println("[REQUEST] GET " + url);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        System.out.println("[RESPONSE] Status: " + response.statusCode());
+
+        return response.body();
     }
 
     /**
@@ -408,9 +594,17 @@ public class AdvancedHttpClientChallenge {
      * @throws InterruptedException if request is interrupted
      */
     public String fetchWithCustomHeaders(String url) throws IOException, InterruptedException {
-        // TODO: Add custom headers: User-Agent, Accept, X-Client-Version
-        // TODO: Send request
-        return null;
+        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .header("User-Agent", "EduMaster-Client/1.0")
+                                .header("Accept", "application/json")
+                                .header("X-Client-Version", "1.0.0")
+                                .GET()
+                                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        return response.body();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -478,13 +672,20 @@ public class AdvancedHttpClientChallenge {
             List<String> http2Results = challenge.fetchWithHttp2(urls);
             System.out.println("Fetched " + http2Results.size() + " responses using HTTP/2");
 
+            // Test 6.2: Compare HTTP/1.1 vs HTTP/2 Performance
+            System.out.println("\n[TEST 6.2] HTTP/1.1 vs HTTP/2 Performance:");
+            long[] http1vs2Results = challenge.compareHttpVersions();
+            System.out.println("HTTP/1.1 Time: " + http1vs2Results[0] + " ms");
+            System.out.println("HTTP/2 Time: " + http1vs2Results[1] + " ms");
+            System.out.println("Time Saved with HTTP/2: " + http1vs2Results[2] + " ms");
+
             // Test 7.1: Logging Interceptor
-            System.out.println("\n[TEST 7.1] Logging Interceptor:");
+            /*System.out.println("\n[TEST 7.1] Logging Interceptor:");
             challenge.fetchWithLogging("https://jsonplaceholder.typicode.com/posts/1");
 
             System.out.println("\n═══════════════════════════════════════════════════════════════════════════════");
             System.out.println("Challenge completed! Implement remaining TODOs to master advanced patterns.");
-            System.out.println("═══════════════════════════════════════════════════════════════════════════════");
+            System.out.println("═══════════════════════════════════════════════════════════════════════════════");*/
 
         } catch (Exception e) {
             System.err.println("Error during testing: " + e.getMessage());
